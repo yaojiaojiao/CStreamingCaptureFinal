@@ -1,0 +1,145 @@
+#ifndef MAINWINDOW_H
+#define MAINWINDOW_H
+
+#include <QMainWindow>
+#include <QLabel>
+#include <QStatusBar>
+#include <QButtonGroup>
+#include <QFile>
+#include <QMessageBox>
+#include <QFile>
+#include <stdio.h>
+#include <qmath.h>
+
+typedef struct
+{
+    int apirev;
+    int trig_channel;                   //触发通道
+    int stream_ch;
+    int clock_source;                   //时钟源
+    int pll_divider;
+    int num_samples_collect;
+    unsigned int num_sample_skip = 128;  //设为128，省区sample_decimation
+    int trig_mode;
+
+    unsigned int buffers_filled;
+    unsigned int collect_result;
+    int num_buffers;			         //Number of buffers
+    int size_buffers;			         //Size of each buffer
+    signed short* data_stream_target;
+
+    FILE* outfileA = NULL;
+    FILE* outfileB = NULL;
+}setupADQ;
+
+namespace Ui {
+class MainWindow;
+}
+
+class MainWindow : public QMainWindow
+{
+    Q_OBJECT
+
+public:
+    explicit MainWindow(QWidget *parent = 0);
+    ~MainWindow();
+
+    void ButtonClassify();
+
+
+//Group里面RadioButton分组
+public slots:
+        void onRadioChannels();
+        void onRadioTrigger();
+
+private slots:
+
+    void on_lineEdit_toFPGA_0_textChanged(const QString &arg0);
+
+    void on_lineEdit_toFPGA_0x_textChanged(const QString &arg0x);
+
+    void on_lineEdit_toFPGA_1_textChanged(const QString &arg1);
+
+    void on_lineEdit_toFPGA_1x_textChanged(const QString &arg1x);
+
+    void on_lineEdit_toFPGA_2_textChanged(const QString &arg2);
+
+    void on_lineEdit_toFPGA_2x_textChanged(const QString &arg2x);
+
+    void on_lineEdit_toFPGA_3_textChanged(const QString &arg3);
+
+    void on_lineEdit_toFPGA_3x_textChanged(const QString &arg3x);
+
+    void on_lineEdit_toFPGA_4_textChanged(const QString &arg4);
+
+    void on_lineEdit_toFPGA_4x_textChanged(const QString &arg4x);
+
+    void on_lineEdit_toFPGA_5_textChanged(const QString &arg5);
+
+    void on_lineEdit_toFPGA_5x_textChanged(const QString &arg5x);
+
+    void on_lineEdit_toFPGA_6_textChanged(const QString &arg6);
+
+    void on_lineEdit_toFPGA_6x_textChanged(const QString &arg6x);
+
+    void on_lineEdit_toFPGA_7_textChanged(const QString &arg7);
+
+    void on_lineEdit_toFPGA_7x_textChanged(const QString &arg7x);
+
+    void on_pushButton_input_clicked();
+
+    void on_pushButton_output_clicked();
+
+    void on_actionSearch_triggered();
+
+    void on_radioButton_default_clicked();
+
+    void on_radioButton_customize_clicked();
+
+    void on_pushButton_sampleStart_clicked();
+
+    void on_lineEdit_BufferNum_returnPressed();
+
+    void on_lineEdit_BufferSize_returnPressed();
+
+private:
+
+    Ui::MainWindow *ui;
+
+    void *adq_cu;
+    int num_of_devices;
+    int num_of_failed;
+    int num_of_ADQ214;
+    void connectADQDevice(void);
+
+    QButtonGroup *ButtonChannel;
+    QButtonGroup *ButtonTrigger;
+
+    QStatusBar *bar;
+    QLabel *ADQ_state;
+    void Create_statusbar();          //创建状态栏
+
+    quint16 write_data0;
+    quint16 write_data1;
+    quint16 write_data2;
+    quint16 write_data3;
+    quint16 write_data4;
+    quint16 write_data5;
+    quint16 write_data6;
+    quint16 write_data7;
+
+    quint16 read_addry0;
+    quint16 read_datay0;
+    quint16 read_addry1;
+    quint16 read_datay1;
+    quint16 read_addry2;
+    quint16 read_datay2;
+    quint16 read_addry3;
+    quint16 read_datay3;
+
+    bool isADQ214Connected;
+
+    setupADQ setupadq;
+};
+
+#endif // MAINWINDOW_H
