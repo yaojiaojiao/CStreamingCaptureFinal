@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1051</width>
-    <height>658</height>
+    <width>1043</width>
+    <height>692</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -20,7 +20,7 @@
    <widget class="QPushButton" name="pushButton_sampleStart">
     <property name="geometry">
      <rect>
-      <x>920</x>
+      <x>910</x>
       <y>200</y>
       <width>93</width>
       <height>28</height>
@@ -40,9 +40,9 @@
     <property name="geometry">
      <rect>
       <x>330</x>
-      <y>280</y>
-      <width>691</width>
-      <height>321</height>
+      <y>290</y>
+      <width>681</width>
+      <height>311</height>
      </rect>
     </property>
    </widget>
@@ -1015,6 +1015,9 @@
             <pointsize>10</pointsize>
            </font>
           </property>
+          <property name="text">
+           <string>8</string>
+          </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
           </property>
@@ -1064,6 +1067,9 @@
             <pointsize>10</pointsize>
            </font>
           </property>
+          <property name="text">
+           <string>2</string>
+          </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
           </property>
@@ -1111,7 +1117,7 @@
      <rect>
       <x>690</x>
       <y>20</y>
-      <width>331</width>
+      <width>321</width>
       <height>151</height>
      </rect>
     </property>
@@ -1335,6 +1341,9 @@
             <pointsize>10</pointsize>
            </font>
           </property>
+          <property name="text">
+           <string>2048</string>
+          </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
           </property>
@@ -1351,7 +1360,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1051</width>
+     <width>1043</width>
      <height>21</height>
     </rect>
    </property>
