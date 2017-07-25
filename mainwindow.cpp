@@ -63,7 +63,8 @@ void MainWindow::connectADQDevice()
         ADQ_state->setText("采集卡未连接");
         isADQ214Connected = false;
     }
-    else if (num_of_ADQ214 != 0){
+    else if (num_of_ADQ214 != 0)
+    {
         ADQ_state->setText("采集卡已连接");
         isADQ214Connected = true;
     }
@@ -176,10 +177,6 @@ void MainWindow::on_pushButton_sampleStart_clicked()
         {
             tmpval = tmpval + 1;
             qDebug() << "Loops:" << tmpval;
-            if (setupadq.trig_mode == 1)	//If trigger mode is sofware
-            {
-                ADQ214_SWTrig(adq_cu, adq_num);
-            }
             do
             {
                 setupadq.collect_result = ADQ214_GetTransferBufferStatus(adq_cu, adq_num, &setupadq.buffers_filled);
@@ -282,7 +279,6 @@ void MainWindow::on_pushButton_sampleStart_clicked()
         delete setupadq.data_stream_target;
     }
 }
-
 
 //进制自动转换
 void MainWindow::on_lineEdit_toFPGA_0_textChanged(const QString &arg0)             //30
