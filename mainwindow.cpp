@@ -10,7 +10,7 @@
 
 #define SUCCESS(f) = {if(!(f)){QMessageBox::critical(this, QString::fromStdString("提示"), QString::fromStdString("Error"));}}
 unsigned int success = 1;
-unsigned int adq_num = 1;
+const unsigned int adq_num = 1;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -90,12 +90,6 @@ void MainWindow::on_radioButton_customize_clicked()
 {
     setupadq.num_buffers = ui->lineEdit_BufferNum->text().toInt();
     setupadq.size_buffers = ui->lineEdit_BufferSize->text().toInt()*512;
-
-    if(success == 0)
-    {
-        qDebug() << "Error!";
-        DeleteADQControlUnit(adq_cu);
-    }
 }
 
 //开始采集
@@ -116,10 +110,10 @@ void MainWindow::on_pushButton_sampleStart_clicked()
         }
         // 设置采集通道
         setupadq.stream_ch = ui->buttonGroup->checkedId();
-        switch(setupadq.stream_ch) {
+        switch(setupadq.stream_ch)
+        {
         case 0:
             setupadq.stream_ch = ADQ214_STREAM_ENABLED_A;
-            //qDebug() << "A";
             break;
         case 1:
             setupadq.stream_ch = ADQ214_STREAM_ENABLED_B;
@@ -133,26 +127,29 @@ void MainWindow::on_pushButton_sampleStart_clicked()
         switch(setupadq.trig_mode)
         {
         case 0:
+        {
+
             setupadq.stream_ch &= 0x7;
             break;
+        }
         case 1:
         {
             ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
             setupadq.stream_ch |= 0x8;
-        }
             break;
+        }
         case 2:
         {
             ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
             setupadq.stream_ch |= 0x8;
-        }
             break;
         }
+        }
 
-        setupadq.clock_source = 0;            //0 = Internal clock
+        setupadq.clock_source = 0;           //0 = Internal clock
         success = success && ADQ214_SetClockSource(adq_cu, adq_num, setupadq.clock_source);
 
-        setupadq.pll_divider = 2;            //在Internal clock=0时，设置
+        setupadq.pll_divider = 2;            //在Internal clock=0时，设置，f_clk = 800MHz/divider
         success = success && ADQ214_SetPllFreqDivider(adq_cu, adq_num, setupadq.pll_divider);
 
         setupadq.num_samples_collect = ui->lineEdit_SampTotNum->text().toInt();  //设置采样点数
@@ -162,7 +159,6 @@ void MainWindow::on_pushButton_sampleStart_clicked()
         success = ADQ214_DisarmTrigger(adq_cu, adq_num);
         success = success && ADQ214_SetStreamStatus(adq_cu, adq_num,setupadq.stream_ch);
         success = success && ADQ214_ArmTrigger(adq_cu, adq_num);
-
 
         unsigned int samples_to_collect;
         samples_to_collect = setupadq.num_samples_collect;
@@ -187,15 +183,10 @@ void MainWindow::on_pushButton_sampleStart_clicked()
 
             int samples_in_buffer;
             if(ADQ214_GetSamplesPerPage(adq_cu, adq_num) > samples_to_collect)
-            {
                 samples_in_buffer = samples_to_collect;
-                qDebug() << "samples_in_buffer = " << samples_in_buffer;
-            }
             else
-            {
                 samples_in_buffer = ADQ214_GetSamplesPerPage(adq_cu, adq_num);
-                qDebug() << "samples_in_buffer = " << samples_in_buffer;
-            }
+            qDebug() << "samples_in_buffer = " << samples_in_buffer;
 
             if (ADQ214_GetStreamOverflow(adq_cu, adq_num))
             {
@@ -237,18 +228,16 @@ void MainWindow::on_pushButton_sampleStart_clicked()
             samples_to_collect = setupadq.num_samples_collect;
             while (samples_to_collect > 0)
             {
+                for (int i=0; (i<4) && (samples_to_collect>0); i++)
                 {
-                    for (int i=0; (i<4) && (samples_to_collect>0); i++)
-                    {
 
-                        fprintf(setupadq.outfileA, "%hi\n", (int)setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect]);
-                        samples_to_collect--;
-                    }
-                    for (int i=0; (i<4) && (samples_to_collect>0); i++)
-                    {
-                        fprintf(setupadq.outfileB, "%hi\n", (int)setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect]);
-                        samples_to_collect--;
-                    }
+                    fprintf(setupadq.outfileA, "%hi\n", (int)setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect]);
+                    samples_to_collect--;
+                }
+                for (int i=0; (i<4) && (samples_to_collect>0); i++)
+                {
+                    fprintf(setupadq.outfileB, "%hi\n", (int)setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect]);
+                    samples_to_collect--;
                 }
             }
             break;
@@ -277,6 +266,11 @@ void MainWindow::on_pushButton_sampleStart_clicked()
         fclose(setupadq.outfileB);
         qDebug() << ("Collect finished!");
         delete setupadq.data_stream_target;
+        if(success == 0)
+        {
+            qDebug() << "Error!";
+            DeleteADQControlUnit(adq_cu);
+        }
     }
 }
 
