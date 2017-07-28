@@ -104,7 +104,7 @@ private slots:
 
     void on_lineEdit_BufferSize_returnPressed();
 
-    void on_testButton_clicked();
+//    void on_testButton_clicked();
 
 private:
 
