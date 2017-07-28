@@ -9,7 +9,8 @@
 #include <QMessageBox>
 #include <QFile>
 #include <stdio.h>
-
+#include "barchart.h"
+#include"linechart.h"
 typedef struct
 {
     int apirev;
@@ -44,6 +45,8 @@ public:
     ~MainWindow();
 
     void ButtonClassify();
+
+
 
 
 //Group里面RadioButton分组
@@ -101,6 +104,8 @@ private slots:
 
     void on_lineEdit_BufferSize_returnPressed();
 
+    void on_testButton_clicked();
+
 private:
 
     Ui::MainWindow *ui;
@@ -139,6 +144,9 @@ private:
     bool isADQ214Connected;
 
     setupADQ setupadq;
+    barchart a;
+    linechart b;
+
 };
 
 #endif // MAINWINDOW_H

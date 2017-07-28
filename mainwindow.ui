@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>1043</width>
-    <height>692</height>
+    <height>698</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -34,16 +34,6 @@
     </property>
     <property name="text">
      <string>开始采集</string>
-    </property>
-   </widget>
-   <widget class="QwtPlot" name="qwtPlot">
-    <property name="geometry">
-     <rect>
-      <x>330</x>
-      <y>290</y>
-      <width>681</width>
-      <height>311</height>
-     </rect>
     </property>
    </widget>
    <widget class="QGroupBox" name="groupBox">
@@ -348,8 +338,8 @@
    <widget class="QGroupBox" name="groupBox_2">
     <property name="geometry">
      <rect>
-      <x>30</x>
-      <y>260</y>
+      <x>0</x>
+      <y>250</y>
       <width>271</width>
       <height>351</height>
      </rect>
@@ -1354,6 +1344,30 @@
      </layout>
     </widget>
    </widget>
+   <widget class="QPushButton" name="testButton">
+    <property name="geometry">
+     <rect>
+      <x>680</x>
+      <y>200</y>
+      <width>75</width>
+      <height>23</height>
+     </rect>
+    </property>
+    <property name="text">
+     <string>PushButton</string>
+    </property>
+   </widget>
+   <widget class="QWidget" name="verticalLayoutWidget">
+    <property name="geometry">
+     <rect>
+      <x>310</x>
+      <y>240</y>
+      <width>691</width>
+      <height>371</height>
+     </rect>
+    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_5"/>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
@@ -1361,7 +1375,7 @@
      <x>0</x>
      <y>0</y>
      <width>1043</width>
-     <height>21</height>
+     <height>23</height>
     </rect>
    </property>
   </widget>
@@ -1400,13 +1414,6 @@
   </action>
  </widget>
  <layoutdefault spacing="6" margin="11"/>
- <customwidgets>
-  <customwidget>
-   <class>QwtPlot</class>
-   <extends>QFrame</extends>
-   <header>qwt_plot.h</header>
-  </customwidget>
- </customwidgets>
  <resources/>
  <connections/>
  <buttongroups>
