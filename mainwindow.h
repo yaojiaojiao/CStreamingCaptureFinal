@@ -11,6 +11,7 @@
 #include <stdio.h>
 #include "barchart.h"
 #include"linechart.h"
+#include <QtWidgets/qlayout.h>
 typedef struct
 {
     int apirev;
@@ -106,6 +107,12 @@ private slots:
 
 //    void on_testButton_clicked();
 
+
+
+    void on_methodBox_activated(int index);
+
+    void on_pushButton_clicked();
+
 private:
 
     Ui::MainWindow *ui;
@@ -142,11 +149,14 @@ private:
     quint16 read_datay3;
 
     bool isADQ214Connected;
-
     setupADQ setupadq;
-    barchart a;
-    linechart b;
 
+    barchart barChart;
+    linechart lineChart;
+    bool method=false; //用于判断折线/柱状图
+    QVBoxLayout *drawLayoutCHA,*drawLayoutCHB;
+    QVector<float> rowCHA,rowCHB;  //新建动态数组
+    QWidget *CHA,*CHB;  //用于管理图像的放大与取消
 };
 
 #endif // MAINWINDOW_H

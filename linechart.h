@@ -21,7 +21,7 @@ class linechart : public QObject
     Q_OBJECT
 public:
     explicit linechart(QObject *parent = nullptr);
-     void line(QVector<float> vectorA, int clectNumber);
+    void line(QVector<float> vectorA, int clectNumber);
     QChartView *chartView;
 
 signals:

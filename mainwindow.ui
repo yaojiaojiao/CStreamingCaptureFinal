@@ -23,7 +23,7 @@
       <x>910</x>
       <y>200</y>
       <width>93</width>
-      <height>28</height>
+      <height>31</height>
      </rect>
     </property>
     <property name="font">
@@ -937,7 +937,7 @@
        <x>20</x>
        <y>30</y>
        <width>291</width>
-       <height>170</height>
+       <height>200</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1344,29 +1344,95 @@
      </layout>
     </widget>
    </widget>
-   <widget class="QPushButton" name="testButton">
+   <widget class="QComboBox" name="methodBox">
     <property name="geometry">
      <rect>
-      <x>680</x>
+      <x>710</x>
+      <y>200</y>
+      <width>69</width>
+      <height>31</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <item>
+     <property name="text">
+      <string>折线图</string>
+     </property>
+    </item>
+    <item>
+     <property name="text">
+      <string>条形图</string>
+     </property>
+    </item>
+   </widget>
+   <widget class="QPushButton" name="pushButton">
+    <property name="geometry">
+     <rect>
+      <x>810</x>
       <y>200</y>
       <width>75</width>
-      <height>23</height>
+      <height>31</height>
      </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>微软雅黑</family>
+      <pointsize>10</pointsize>
+     </font>
     </property>
     <property name="text">
-     <string>PushButton</string>
+     <string> 放大</string>
     </property>
    </widget>
-   <widget class="QWidget" name="verticalLayoutWidget">
+   <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>310</x>
-      <y>240</y>
-      <width>691</width>
-      <height>371</height>
+      <x>350</x>
+      <y>280</y>
+      <width>649</width>
+      <height>329</height>
      </rect>
     </property>
-    <layout class="QVBoxLayout" name="verticalLayout_5"/>
+    <property name="currentIndex">
+     <number>1</number>
+    </property>
+    <widget class="QWidget" name="CHA">
+     <attribute name="title">
+      <string>CHA</string>
+     </attribute>
+     <widget class="QWidget" name="verticalLayoutWidget">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>651</width>
+        <height>311</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_CHA"/>
+     </widget>
+    </widget>
+    <widget class="QWidget" name="CHB">
+     <attribute name="title">
+      <string>CHB</string>
+     </attribute>
+     <widget class="QWidget" name="verticalLayoutWidget_2">
+      <property name="geometry">
+       <rect>
+        <x>0</x>
+        <y>0</y>
+        <width>651</width>
+        <height>311</height>
+       </rect>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_CHB"/>
+     </widget>
+    </widget>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
