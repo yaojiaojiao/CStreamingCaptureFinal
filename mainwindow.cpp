@@ -113,8 +113,7 @@ void MainWindow::on_pushButton_sampleStart_clicked()
             DeleteADQControlUnit(adq_cu);
         }
 
-        onRadioChannels();
-        onRadioTrigger();
+
         // 设置采集通道
         qDebug() << "stream_ch=" << setupadq.stream_ch;
         switch(setupadq.stream_ch) {
