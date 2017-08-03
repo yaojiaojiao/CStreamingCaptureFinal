@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QFile>
 #include <stdio.h>
+#include <QDebug>
 
 typedef struct
 {
