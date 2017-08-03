@@ -6,11 +6,10 @@
 #include <qbuttongroup.h>
 #include <memory.h>
 #include <stdio.h>
+#include<QDataStream>
 
-
-#define SUCCESS(f) = {if(!(f)){QMessageBox::critical(this, QString::fromStdString("提示"), QString::fromStdString("Error"));}}
 unsigned int success = 1;
-const unsigned int adq_num = 1;
+unsigned int adq_num = 1;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -28,7 +27,6 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "adq_cu = " << adq_cu;
     connectADQDevice();
 
-    //setupADQ setupadq;
     setupadq.apirev = ADQAPI_GetRevision();
     qDebug() << IS_VALID_DLL_REVISION(setupadq.apirev);
     qDebug() << "ADQAPI Example";
@@ -63,8 +61,7 @@ void MainWindow::connectADQDevice()
         ADQ_state->setText("采集卡未连接");
         isADQ214Connected = false;
     }
-    else if (num_of_ADQ214 != 0)
-    {
+    else if (num_of_ADQ214 != 0){
         ADQ_state->setText("采集卡已连接");
         isADQ214Connected = true;
     }
@@ -82,7 +79,6 @@ void MainWindow::on_radioButton_default_clicked()
     setupadq.size_buffers = 1024;
     ui->lineEdit_BufferNum->setText(QString::number(setupadq.num_buffers));
     ui->lineEdit_BufferSize->setText(QString::number(setupadq.size_buffers/512));
-    //        success = success && ADQ214_SetTransferBuffers(adq_cu, adq_num, setupadq.num_buffers,setupadq.size_buffers);
 }
 
 //自定义buffers
@@ -99,94 +95,119 @@ void MainWindow::on_pushButton_sampleStart_clicked()
         QMessageBox::critical(this, QString::fromStdString("采集卡未连接！！"), QString::fromStdString("采集卡未连接"));
     else
     {
+
         ADQ214_SetDataFormat(adq_cu, adq_num,ADQ214_DATA_FORMAT_UNPACKED_14BIT);
         // 设置TransferBuffer大小及数量
-        success = success && ADQ214_SetTransferBuffers(adq_cu, adq_num, setupadq.num_buffers, setupadq.size_buffers);
+
+        if(ui->radioButton_customize->isChecked())
+        {
+            success = success && ADQ214_SetTransferBuffers(adq_cu, adq_num, setupadq.num_buffers, setupadq.size_buffers);
+        }
+        qDebug() << "num_buffer = " << setupadq.num_buffers;
+        qDebug() << "size_buffer = " << setupadq.size_buffers;
+
         //设置数据简化方案
         if(ADQ214_SetSampleSkip(adq_cu, adq_num, setupadq.num_sample_skip) == 0)
         {
             qDebug() << "Error";
             DeleteADQControlUnit(adq_cu);
         }
+
+        onRadioChannels();
+        onRadioTrigger();
         // 设置采集通道
-        setupadq.stream_ch = ui->buttonGroup->checkedId();
-        switch(setupadq.stream_ch)
-        {
+        qDebug() << "stream_ch=" << setupadq.stream_ch;
+        switch(setupadq.stream_ch) {
         case 0:
             setupadq.stream_ch = ADQ214_STREAM_ENABLED_A;
+            qDebug() << "A";
             break;
         case 1:
             setupadq.stream_ch = ADQ214_STREAM_ENABLED_B;
+            qDebug() << "B";
             break;
         case 2:
             setupadq.stream_ch = ADQ214_STREAM_ENABLED_BOTH;
+            qDebug() << "Bo";
             break;
         }
         // 设置触发方式：无触发、软件触发、外触发
-        setupadq.trig_mode = ui->buttonGroup_2->checkedId();
+
+        qDebug() << "tri_mode=" << setupadq.trig_mode;
         switch(setupadq.trig_mode)
         {
         case 0:
-        {
-
             setupadq.stream_ch &= 0x7;
+            qDebug() << "no";
             break;
-        }
         case 1:
         {
             ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
             setupadq.stream_ch |= 0x8;
-            break;
+            qDebug() << "soft";
         }
+            break;
         case 2:
         {
             ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
             setupadq.stream_ch |= 0x8;
+            qDebug() << "exter";
+        }
             break;
         }
-        }
 
-        setupadq.clock_source = 0;           //0 = Internal clock
+        setupadq.clock_source = 0;            //0 = Internal clock
         success = success && ADQ214_SetClockSource(adq_cu, adq_num, setupadq.clock_source);
 
-        setupadq.pll_divider = 2;            //在Internal clock=0时，设置，f_clk = 800MHz/divider
+        setupadq.pll_divider = 2;            //在Internal clock=0时，设置
         success = success && ADQ214_SetPllFreqDivider(adq_cu, adq_num, setupadq.pll_divider);
 
         setupadq.num_samples_collect = ui->lineEdit_SampTotNum->text().toInt();  //设置采样点数
         setupadq.data_stream_target = new qint16[setupadq.num_samples_collect];
         memset(setupadq.data_stream_target, 0, setupadq.num_samples_collect);
 
-        success = ADQ214_DisarmTrigger(adq_cu, adq_num);
+        success = success && ADQ214_DisarmTrigger(adq_cu, adq_num);
         success = success && ADQ214_SetStreamStatus(adq_cu, adq_num,setupadq.stream_ch);
         success = success && ADQ214_ArmTrigger(adq_cu, adq_num);
 
+
         unsigned int samples_to_collect;
         samples_to_collect = setupadq.num_samples_collect;
+
         int tmpval = 0;
 
-        if (setupadq.trig_mode == 1)	//触发模式为sofware
+        if (setupadq.trig_mode == 1)	    //触发模式为sofware
         {
             ADQ214_SWTrig(adq_cu, adq_num);
         }
 
+        //        ADQ214_SWTrig(adq_cu, adq_num);
         while (samples_to_collect > 0)
         {
             tmpval = tmpval + 1;
             qDebug() << "Loops:" << tmpval;
+            if (setupadq.trig_mode == 1)	//If trigger mode is sofware
+            {
+                ADQ214_SWTrig(adq_cu, adq_num);
+            }
             do
             {
                 setupadq.collect_result = ADQ214_GetTransferBufferStatus(adq_cu, adq_num, &setupadq.buffers_filled);
-                qDebug() << ("Filled: ") << setupadq.buffers_filled;
             } while ((setupadq.buffers_filled == 0) && (setupadq.collect_result));
 
             setupadq.collect_result = ADQ214_CollectDataNextPage(adq_cu, adq_num);
 
             int samples_in_buffer;
             if(ADQ214_GetSamplesPerPage(adq_cu, adq_num) > samples_to_collect)
+            {
                 samples_in_buffer = samples_to_collect;
+                qDebug() << "samples_in_buffer = " << samples_in_buffer;
+            }
             else
+            {
                 samples_in_buffer = ADQ214_GetSamplesPerPage(adq_cu, adq_num);
-            qDebug() << "samples_in_buffer = " << samples_in_buffer;
+                qDebug() << "samples_in_buffer = " << samples_in_buffer;
+            }
 
             if (ADQ214_GetStreamOverflow(adq_cu, adq_num))
             {
@@ -203,6 +224,7 @@ void MainWindow::on_pushButton_sampleStart_clicked()
                         ADQ214_GetPtrStream(adq_cu, adq_num),
                         samples_in_buffer*sizeof(signed short));
                 samples_to_collect -= samples_in_buffer;
+                qDebug() << " AA= "<<samples_to_collect;
             }
             else
             {
@@ -219,60 +241,75 @@ void MainWindow::on_pushButton_sampleStart_clicked()
         qDebug() << "Writing stream data in RAM to disk" ;
 
         setupadq.stream_ch &= 0x07;
-        setupadq.outfileA = fopen("data_A.out", "w");
-        setupadq.outfileB = fopen("data_B.out", "w");
+        QFile fileA("dataA.txt");
+        QFile fileB("dataB.txt");
         switch(setupadq.stream_ch)
         {
         case ADQ214_STREAM_ENABLED_BOTH:
         {
+            QTextStream out(&fileA);
+            QTextStream out2(&fileB);
             samples_to_collect = setupadq.num_samples_collect;
-            while (samples_to_collect > 0)
+            if(fileA.open(QFile::WriteOnly)&&fileB.open(QFile::WriteOnly))
             {
-                for (int i=0; (i<4) && (samples_to_collect>0); i++)
-                {
 
-                    fprintf(setupadq.outfileA, "%hi\n", (int)setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect]);
-                    samples_to_collect--;
-                }
-                for (int i=0; (i<4) && (samples_to_collect>0); i++)
+                while (samples_to_collect > 0)
                 {
-                    fprintf(setupadq.outfileB, "%hi\n", (int)setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect]);
-                    samples_to_collect--;
+                    for (int i=0; (i<4) && (samples_to_collect>0); i++)
+                    {
+
+                        out << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                        samples_to_collect--;
+                    }
+
+                    for (int i=0; (i<4) && (samples_to_collect>0); i++)
+                    {
+
+                        out2 << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                        samples_to_collect--;
+
+                    }
                 }
             }
+            fileA.close();
+            fileB.close();
             break;
         }
         case ADQ214_STREAM_ENABLED_A:
         {
-            for (int i=0; i<setupadq.num_samples_collect; i++)
+            if(fileA.open(QFile::WriteOnly))
             {
-
-                fprintf(setupadq.outfileA, "%hi\n", (int)setupadq.data_stream_target[i]);
+                QTextStream out(&fileA);
+                for (int i=0; i<setupadq.num_samples_collect; i++)
+                {
+                    out<<setupadq.data_stream_target[i]<<endl;
+                }
             }
+            fileA.close();
             break;
         }
         case ADQ214_STREAM_ENABLED_B:
         {
-            for (int i=0; i<setupadq.num_samples_collect; i++)
+            if(fileB.open(QFile::WriteOnly))
             {
-                fprintf(setupadq.outfileB, "%hi\n", (int)setupadq.data_stream_target[i]);
+                QTextStream out(&fileB);
+                for (int i=0; i<setupadq.num_samples_collect; i++)
+                {
+                    out<<setupadq.data_stream_target[i]<<endl;
+                }
             }
+            fileB.close();
             break;
         }
         default:
             break;
         }
-        fclose(setupadq.outfileA);
-        fclose(setupadq.outfileB);
+
         qDebug() << ("Collect finished!");
         delete setupadq.data_stream_target;
-        if(success == 0)
-        {
-            qDebug() << "Error!";
-            DeleteADQControlUnit(adq_cu);
-        }
     }
 }
+
 
 //进制自动转换
 void MainWindow::on_lineEdit_toFPGA_0_textChanged(const QString &arg0)             //30
@@ -443,7 +480,7 @@ void MainWindow::on_pushButton_output_clicked()
         qDebug() << "ADQ214 device unconnected";
 }
 
-//Group内RadioButton分组互斥
+//Group内RadioButton分组互斥分配ID
 void MainWindow::ButtonClassify()
 {
 
@@ -468,22 +505,41 @@ void MainWindow::ButtonClassify()
 void MainWindow::onRadioChannels()
 {
     setupadq.stream_ch = ButtonChannel->checkedId();
-    switch(setupadq.stream_ch) {
-    case 0:
-        setupadq.stream_ch = ADQ214_STREAM_ENABLED_A;
-        break;
-    case 1:
-        setupadq.stream_ch = ADQ214_STREAM_ENABLED_B;
-        break;
-    case 2:
-        setupadq.stream_ch = ADQ214_STREAM_ENABLED_BOTH;
-        break;
-    }
+    //        switch(setupadq.stream_ch) {
+    //        case 0:
+    //            setupadq.stream_ch = ADQ214_STREAM_ENABLED_A;
+    //            qDebug() << "A";
+    //            break;
+    //        case 1:
+    //            setupadq.stream_ch = ADQ214_STREAM_ENABLED_B;
+    //            break;
+    //        case 2:
+    //            setupadq.stream_ch = ADQ214_STREAM_ENABLED_BOTH;
+    //            break;
+    //        }
 }
 
 void MainWindow::onRadioTrigger()
 {
     setupadq.trig_mode = ButtonTrigger->checkedId();
+    //        switch(setupadq.trig_mode)
+    //        {
+    //        case 0:
+    //            setupadq.stream_ch &= 0x7;
+    //            break;
+    //        case 1:
+    //        {
+    //            ADQ_SetTri ggerMode(adq_cu, adq_num,setupadq.trig_mode);
+    //            setupadq.stream_ch |= 0x8;
+    //        }
+    //            break;
+    //        case 2:
+    //        {
+    //            ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
+    //            setupadq.stream_ch |= 0x8;
+    //        }
+    //            break;
+    //        }
 }
 
 void MainWindow::on_lineEdit_BufferNum_returnPressed()
