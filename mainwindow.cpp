@@ -6,10 +6,11 @@
 #include <qbuttongroup.h>
 #include <memory.h>
 #include <stdio.h>
-#include<QDataStream>
+#include <QDataStream>
 
+#define SUCCESS(f) = {if(!(f)){QMessageBox::critical(this, QString::fromStdString("提示"), QString::fromStdString("Error"));}}																																
 unsigned int success = 1;
-unsigned int adq_num = 1;
+const unsigned int adq_num = 1;
 
 MainWindow::MainWindow(QWidget *parent) :
     QMainWindow(parent),
@@ -31,6 +32,8 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << IS_VALID_DLL_REVISION(setupadq.apirev);
     qDebug() << "ADQAPI Example";
     qDebug() << "API Revision:" << setupadq.apirev;
+    drawLayoutCHA=ui->verticalLayout_CHA;
+    drawLayoutCHB=ui->verticalLayout_CHB;
 
 }
 
@@ -61,7 +64,8 @@ void MainWindow::connectADQDevice()
         ADQ_state->setText("采集卡未连接");
         isADQ214Connected = false;
     }
-    else if (num_of_ADQ214 != 0){
+    else if (num_of_ADQ214 != 0)
+    {
         ADQ_state->setText("采集卡已连接");
         isADQ214Connected = true;
     }
@@ -91,11 +95,26 @@ void MainWindow::on_radioButton_customize_clicked()
 //开始采集
 void MainWindow::on_pushButton_sampleStart_clicked()
 {
+    while(drawLayoutCHA->count())                  //删除布局中的所有控件
+    {
+        QWidget *p=this->drawLayoutCHA->itemAt(0)->widget();
+        p->setParent (NULL);
+        this->drawLayoutCHA->removeWidget(p);
+        delete p;
+    }
+    while(drawLayoutCHB->count())                  //删除布局中的所有控件
+    {
+        QWidget *p=this->drawLayoutCHB->itemAt(0)->widget();
+        p->setParent (NULL);
+        this->drawLayoutCHB->removeWidget(p);
+        delete p;
+    }
+    CHA=NULL,CHB=NULL;
+
     if (!isADQ214Connected)
         QMessageBox::critical(this, QString::fromStdString("采集卡未连接！！"), QString::fromStdString("采集卡未连接"));
     else
     {
-
         ADQ214_SetDataFormat(adq_cu, adq_num,ADQ214_DATA_FORMAT_UNPACKED_14BIT);
         // 设置TransferBuffer大小及数量
 
@@ -158,7 +177,7 @@ void MainWindow::on_pushButton_sampleStart_clicked()
         setupadq.clock_source = 0;            //0 = Internal clock
         success = success && ADQ214_SetClockSource(adq_cu, adq_num, setupadq.clock_source);
 
-        setupadq.pll_divider = 2;            //在Internal clock=0时，设置
+        setupadq.pll_divider = 2;            //在Internal clock=0时，设置，f_clk = 800MHz/divider
         success = success && ADQ214_SetPllFreqDivider(adq_cu, adq_num, setupadq.pll_divider);
 
         setupadq.num_samples_collect = ui->lineEdit_SampTotNum->text().toInt();  //设置采样点数
@@ -180,7 +199,7 @@ void MainWindow::on_pushButton_sampleStart_clicked()
             ADQ214_SWTrig(adq_cu, adq_num);
         }
 
-        //        ADQ214_SWTrig(adq_cu, adq_num);
+        // ADQ214_SWTrig(adq_cu, adq_num);
         while (samples_to_collect > 0)
         {
             tmpval = tmpval + 1;
@@ -192,6 +211,7 @@ void MainWindow::on_pushButton_sampleStart_clicked()
             do
             {
                 setupadq.collect_result = ADQ214_GetTransferBufferStatus(adq_cu, adq_num, &setupadq.buffers_filled);
+                qDebug() << ("Filled: ") << setupadq.buffers_filled;
             } while ((setupadq.buffers_filled == 0) && (setupadq.collect_result));
 
             setupadq.collect_result = ADQ214_CollectDataNextPage(adq_cu, adq_num);
@@ -220,8 +240,7 @@ void MainWindow::on_pushButton_sampleStart_clicked()
                 // procedure could be implemented here.
                 // Data format is set to 16 bits, so buffer size is Samples*2 bytes
                 memcpy((void*)&setupadq.data_stream_target[setupadq.num_samples_collect - samples_to_collect],
-                        ADQ214_GetPtrStream(adq_cu, adq_num),
-                        samples_in_buffer*sizeof(signed short));
+                        ADQ214_GetPtrStream(adq_cu, adq_num), samples_in_buffe r* sizeof(signed short));
                 samples_to_collect -= samples_in_buffer;
                 qDebug() << " AA= "<<samples_to_collect;
             }
@@ -249,9 +268,10 @@ void MainWindow::on_pushButton_sampleStart_clicked()
             QTextStream out(&fileA);
             QTextStream out2(&fileB);
             samples_to_collect = setupadq.num_samples_collect;
+            rowCHA.resize((setupadq.num_samples_collect));      //设置数组大小为采集点数
+            rowCHB.resize((setupadq.num_samples_collect));
             if(fileA.open(QFile::WriteOnly)&&fileB.open(QFile::WriteOnly))
             {
-
                 while (samples_to_collect > 0)
                 {
                     for (int i=0; (i<4) && (samples_to_collect>0); i++)
@@ -266,38 +286,77 @@ void MainWindow::on_pushButton_sampleStart_clicked()
 
                         out2 << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
                         samples_to_collect--;
-
                     }
                 }
             }
             fileA.close();
             fileB.close();
+            if(!method)
+            {
+                lineChart.line(rowCHA,(setupadq.num_samples_collect)/2);  //数组传给linechart
+                drawLayoutCHA->addWidget(lineChart.chartView);
+                lineChart.line(rowCHB,(setupadq.num_samples_collect)/2);
+                drawLayoutCHB->addWidget(lineChart.chartView);
+            }
+            else
+            {
+                barChart.chart(rowCHA,(setupadq.num_samples_collect)/2);  //数组传给linechart
+                drawLayoutCHA->addWidget(barChart.chartView);
+                barChart.chart(rowCHB,(setupadq.num_samples_collect)/2);  //数组传给linechart
+                drawLayoutCHB->addWidget(barChart.chartView);
+            }
             break;
         }
         case ADQ214_STREAM_ENABLED_A:
         {
+            rowCHA.resize(setupadq.num_samples_collect);
             if(fileA.open(QFile::WriteOnly))
             {
                 QTextStream out(&fileA);
                 for (int i=0; i<setupadq.num_samples_collect; i++)
                 {
                     out<<setupadq.data_stream_target[i]<<endl;
+                    rowCHA[i]=setupadq.data_stream_target[i];
                 }
             }
             fileA.close();
+            if(!method)
+            {
+                lineChart.line(rowCHA,setupadq.num_samples_collect);  //数组传给linechart
+                drawLayoutCHA->addWidget(lineChart.chartView);
+                // b.chartView->setWindowFlags(Qt::Window|Qt::WindowMinimizeButtonHint
+                //               |Qt::WindowMaximizeButtonHint|Qt::WindowCloseButtonHint);
+            }
+            else
+            {
+                barChart.chart(rowCHA,setupadq.num_samples_collect);  //数组传给barChart
+                drawLayoutCHA->addWidget(barChart.chartView);
+            }
             break;
         }
         case ADQ214_STREAM_ENABLED_B:
         {
+            rowCHB.resize(setupadq.num_samples_collect);
             if(fileB.open(QFile::WriteOnly))
             {
                 QTextStream out(&fileB);
                 for (int i=0; i<setupadq.num_samples_collect; i++)
                 {
                     out<<setupadq.data_stream_target[i]<<endl;
+                    rowCHB[i]=setupadq.data_stream_target[i];
                 }
             }
             fileB.close();
+            if(!method)
+            {
+                lineChart.line(rowCHB,setupadq.num_samples_collect);  //数组传给linechart
+                drawLayoutCHB->addWidget(lineChart.chartView);
+            }
+            else
+            {
+                barChart.chart(rowCHB,setupadq.num_samples_collect);  //数组传给barChartchart
+                drawLayoutCHB->addWidget(barChart.chartView);
+            }
             break;
         }
         default:
@@ -306,6 +365,11 @@ void MainWindow::on_pushButton_sampleStart_clicked()
 
         qDebug() << ("Collect finished!");
         delete setupadq.data_stream_target;
+        if(success == 0)
+        {
+            qDebug() << "Error!";
+            DeleteADQControlUnit(adq_cu);
+        }
     }
 }
 
@@ -437,7 +501,6 @@ void MainWindow::on_pushButton_input_clicked()
         qDebug() << "ADQ214 device unconnected";
 }
 
-
 void MainWindow::on_pushButton_output_clicked()
 {
     if(num_of_ADQ214 != 0)
@@ -504,41 +567,11 @@ void MainWindow::ButtonClassify()
 void MainWindow::onRadioChannels()
 {
     setupadq.stream_ch = ButtonChannel->checkedId();
-    //        switch(setupadq.stream_ch) {
-    //        case 0:
-    //            setupadq.stream_ch = ADQ214_STREAM_ENABLED_A;
-    //            qDebug() << "A";
-    //            break;
-    //        case 1:
-    //            setupadq.stream_ch = ADQ214_STREAM_ENABLED_B;
-    //            break;
-    //        case 2:
-    //            setupadq.stream_ch = ADQ214_STREAM_ENABLED_BOTH;
-    //            break;
-    //        }
 }
 
 void MainWindow::onRadioTrigger()
 {
     setupadq.trig_mode = ButtonTrigger->checkedId();
-    //        switch(setupadq.trig_mode)
-    //        {
-    //        case 0:
-    //            setupadq.stream_ch &= 0x7;
-    //            break;
-    //        case 1:
-    //        {
-    //            ADQ_SetTri ggerMode(adq_cu, adq_num,setupadq.trig_mode);
-    //            setupadq.stream_ch |= 0x8;
-    //        }
-    //            break;
-    //        case 2:
-    //        {
-    //            ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
-    //            setupadq.stream_ch |= 0x8;
-    //        }
-    //            break;
-    //        }
 }
 
 void MainWindow::on_lineEdit_BufferNum_returnPressed()
@@ -550,3 +583,59 @@ void MainWindow::on_lineEdit_BufferSize_returnPressed()
 {
     setupadq.size_buffers = ui->lineEdit_BufferSize->text().toInt();
 }
+
+void MainWindow::on_methodBox_activated(int index)
+{
+    if(index == 1)
+    {
+        method = true;
+    }
+    else
+    {
+        method = false;
+    }
+
+}
+
+void MainWindow::on_pushButton_clicked() //放大按钮
+{
+    if(!drawLayoutCHB->isEmpty())  //图像放大
+    {
+        CHB = this->drawLayoutCHB->itemAt(0)->widget();
+        if(CHB->isWidgetType())
+        {
+            CHB->setWindowFlags(Qt::Window);
+            CHB->showMaximized();
+        }
+    }
+    else
+    {
+        if(!CHB)
+            CHB = NULL;
+        else                 //再次点击取消放大
+        {
+            CHB->setWindowFlags(Qt::Widget);
+            drawLayoutCHB->addWidget(CHB);
+        }
+    }
+
+    if(!drawLayoutCHA->isEmpty())
+    {
+        CHA = this->drawLayoutCHA->itemAt(0)->widget();
+        if(CHA->isWidgetType())
+        {
+            CHA->setWindowFlags(Qt::Window);
+            CHA->showMaximized();
+        }
+    }
+    else
+    {
+        if(!CHA)
+            CHA = NULL;
+        else
+        {
+            CHA->setWindowFlags(Qt::Widget);
+            drawLayoutCHA->addWidget(CHA);
+        }
+    }
+}											  

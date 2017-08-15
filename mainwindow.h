@@ -10,7 +10,9 @@
 #include <QFile>
 #include <stdio.h>
 #include <QDebug>
-
+#include "barchart.h"
+#include"linechart.h"
+#include <QtWidgets/qlayout.h>
 typedef struct
 {
     int apirev;
@@ -45,8 +47,6 @@ public:
     ~MainWindow();
 
     void ButtonClassify();
-
-
 //Group里面RadioButton分组
 public slots:
         void onRadioChannels();
@@ -102,6 +102,11 @@ private slots:
 
     void on_lineEdit_BufferSize_returnPressed();
 
+	//    void on_testButton_clicked();
+	
+    void on_methodBox_activated(int index);
+
+    void on_pushButton_clicked();							   
 private:
 
     Ui::MainWindow *ui;
@@ -140,6 +145,13 @@ private:
     bool isADQ214Connected;
 
     setupADQ setupadq;
+
+    barchart barChart;
+    linechart lineChart;
+    bool method=false; //用于判断折线/柱状图
+    QVBoxLayout *drawLayoutCHA,*drawLayoutCHB;
+    QVector<float> rowCHA, rowCHB;  //新建动态数组
+    QWidget *CHA, *CHB;  //用于管理图像的放大与取消
 };
 
 #endif // MAINWINDOW_H
