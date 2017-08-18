@@ -1,4 +1,4 @@
-#include "mainwindow.h"
+﻿#include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "ADQAPI.h"
 #include <QDebug>
@@ -8,8 +8,8 @@
 #include <stdio.h>
 #include <QDataStream>
 
-#define SUCCESS(f) = {if(!(f)){QMessageBox::critical(this, QString::fromStdString("提示"), QString::fromStdString("Error"));}}																																
-unsigned int success = 1;
+//#define SUCCESS(f) = {if(!(f)){QMessageBox::critical(this, QString::fromStdString("提示"), QString::fromStdString("Error"));}}
+bool success = true;
 const unsigned int adq_num = 1;
 
 MainWindow::MainWindow(QWidget *parent) :
@@ -17,7 +17,10 @@ MainWindow::MainWindow(QWidget *parent) :
     ui(new Ui::MainWindow)
 {
     ui->setupUi(this);
-    ButtonClassify();                              //Group里RadioButton分类
+
+    setupadq.num_sample_skip = 128;        //设为128，省去sample_decimation
+
+    ButtonClassify();                      //Group里RadioButton分类
     on_radioButton_default_clicked();
     Create_statusbar();
 
@@ -34,6 +37,12 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << "API Revision:" << setupadq.apirev;
     drawLayoutCHA=ui->verticalLayout_CHA;
     drawLayoutCHB=ui->verticalLayout_CHB;
+
+    onRadioChannels();
+    onRadioTrigger();
+    on_lineEdit_BufferNum_returnPressed();
+    on_lineEdit_BufferSize_returnPressed();
+    on_methodBox_activated(1);
 
 }
 
@@ -61,12 +70,12 @@ void MainWindow::connectADQDevice()
     num_of_ADQ214 = ADQControlUnit_NofADQ214(adq_cu);				//返回找到ADQ214设备的数量
     if((num_of_failed > 0)||(num_of_devices == 0))
     {
-        ADQ_state->setText("采集卡未连接");
+        ADQ_state->setText(QString::fromLocal8Bit("采集卡未连接"));
         isADQ214Connected = false;
     }
     else if (num_of_ADQ214 != 0)
     {
-        ADQ_state->setText("采集卡已连接");
+        ADQ_state->setText(QString::fromLocal8Bit("采集卡已连接"));
         isADQ214Connected = true;
     }
 }
@@ -90,291 +99,6 @@ void MainWindow::on_radioButton_customize_clicked()
 {
     setupadq.num_buffers = ui->lineEdit_BufferNum->text().toInt();
     setupadq.size_buffers = ui->lineEdit_BufferSize->text().toInt()*512;
-}
-
-//开始采集
-void MainWindow::on_pushButton_sampleStart_clicked()
-{
-    while(drawLayoutCHA->count())                  //删除布局中的所有控件
-    {
-        QWidget *p=this->drawLayoutCHA->itemAt(0)->widget();
-        p->setParent (NULL);
-        this->drawLayoutCHA->removeWidget(p);
-        delete p;
-    }
-    while(drawLayoutCHB->count())                  //删除布局中的所有控件
-    {
-        QWidget *p=this->drawLayoutCHB->itemAt(0)->widget();
-        p->setParent (NULL);
-        this->drawLayoutCHB->removeWidget(p);
-        delete p;
-    }
-    CHA=NULL,CHB=NULL;
-
-    if (!isADQ214Connected)
-        QMessageBox::critical(this, QString::fromStdString("采集卡未连接！！"), QString::fromStdString("采集卡未连接"));
-    else
-    {
-        ADQ214_SetDataFormat(adq_cu, adq_num,ADQ214_DATA_FORMAT_UNPACKED_14BIT);
-        // 设置TransferBuffer大小及数量
-
-        if(ui->radioButton_customize->isChecked())
-        {
-            success = success && ADQ214_SetTransferBuffers(adq_cu, adq_num, setupadq.num_buffers, setupadq.size_buffers);
-        }
-        qDebug() << "num_buffer = " << setupadq.num_buffers;
-        qDebug() << "size_buffer = " << setupadq.size_buffers;
-
-        //设置数据简化方案
-        if(ADQ214_SetSampleSkip(adq_cu, adq_num, setupadq.num_sample_skip) == 0)
-        {
-            qDebug() << "Error";
-            DeleteADQControlUnit(adq_cu);
-        }
-
-        // 设置采集通道
-        qDebug() << "stream_ch=" << setupadq.stream_ch;
-        switch(setupadq.stream_ch) {
-        case 0:
-            setupadq.stream_ch = ADQ214_STREAM_ENABLED_A;
-            qDebug() << "A";
-            break;
-        case 1:
-            setupadq.stream_ch = ADQ214_STREAM_ENABLED_B;
-            qDebug() << "B";
-            break;
-        case 2:
-            setupadq.stream_ch = ADQ214_STREAM_ENABLED_BOTH;
-            qDebug() << "Bo";
-            break;
-        }
-        // 设置触发方式：无触发、软件触发、外触发
-
-        qDebug() << "tri_mode=" << setupadq.trig_mode;
-        switch(setupadq.trig_mode)
-        {
-        case 0:
-            setupadq.stream_ch &= 0x7;
-            qDebug() << "no";
-            break;
-        case 1:
-        {
-            ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
-            setupadq.stream_ch |= 0x8;
-            qDebug() << "soft";
-        }
-            break;
-        case 2:
-        {
-            ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
-            setupadq.stream_ch |= 0x8;
-            qDebug() << "exter";
-        }
-            break;
-        }
-
-        setupadq.clock_source = 0;            //0 = Internal clock
-        success = success && ADQ214_SetClockSource(adq_cu, adq_num, setupadq.clock_source);
-
-        setupadq.pll_divider = 2;            //在Internal clock=0时，设置，f_clk = 800MHz/divider
-        success = success && ADQ214_SetPllFreqDivider(adq_cu, adq_num, setupadq.pll_divider);
-
-        setupadq.num_samples_collect = ui->lineEdit_SampTotNum->text().toInt();  //设置采样点数
-        setupadq.data_stream_target = new qint16[setupadq.num_samples_collect];
-        memset(setupadq.data_stream_target, 0, setupadq.num_samples_collect);
-
-        success = success && ADQ214_DisarmTrigger(adq_cu, adq_num);
-        success = success && ADQ214_SetStreamStatus(adq_cu, adq_num,setupadq.stream_ch);
-        success = success && ADQ214_ArmTrigger(adq_cu, adq_num);
-
-
-        unsigned int samples_to_collect;
-        samples_to_collect = setupadq.num_samples_collect;
-
-        int tmpval = 0;
-
-        if (setupadq.trig_mode == 1)	    //触发模式为sofware
-        {
-            ADQ214_SWTrig(adq_cu, adq_num);
-        }
-
-        // ADQ214_SWTrig(adq_cu, adq_num);
-        while (samples_to_collect > 0)
-        {
-            tmpval = tmpval + 1;
-            qDebug() << "Loops:" << tmpval;
-            if (setupadq.trig_mode == 1)	//If trigger mode is sofware
-            {
-                ADQ214_SWTrig(adq_cu, adq_num);
-            }
-            do
-            {
-                setupadq.collect_result = ADQ214_GetTransferBufferStatus(adq_cu, adq_num, &setupadq.buffers_filled);
-                qDebug() << ("Filled: ") << setupadq.buffers_filled;
-            } while ((setupadq.buffers_filled == 0) && (setupadq.collect_result));
-
-            setupadq.collect_result = ADQ214_CollectDataNextPage(adq_cu, adq_num);
-
-            int samples_in_buffer;
-            if(ADQ214_GetSamplesPerPage(adq_cu, adq_num) > samples_to_collect)
-            {
-                samples_in_buffer = samples_to_collect;
-                qDebug() << "samples_in_buffer = " << samples_in_buffer;
-            }
-            else
-            {
-                samples_in_buffer = ADQ214_GetSamplesPerPage(adq_cu, adq_num);
-                qDebug() << "samples_in_buffer = " << samples_in_buffer;
-            }
-
-            if (ADQ214_GetStreamOverflow(adq_cu, adq_num))
-            {
-                qDebug() << ("Warning: Streaming Overflow!");
-                setupadq.collect_result = 0;
-            }
-
-            if (setupadq.collect_result)
-            {
-                // Buffer all data in RAM before writing to disk, if streaming to disk is need a high performance
-                // procedure could be implemented here.
-                // Data format is set to 16 bits, so buffer size is Samples*2 bytes
-                memcpy((void*)&setupadq.data_stream_target[setupadq.num_samples_collect - samples_to_collect],
-                        ADQ214_GetPtrStream(adq_cu, adq_num), samples_in_buffer* sizeof(signed short));
-                samples_to_collect -= samples_in_buffer;
-                qDebug() << " AA= "<<samples_to_collect;
-            }
-            else
-            {
-                qDebug() << ("Collect next data page failed!");
-                samples_to_collect = 0;
-            }
-        }
-
-        success = success && ADQ_DisarmTrigger(adq_cu, adq_num);
-
-        success = success && ADQ214_SetStreamStatus(adq_cu, adq_num,0);
-
-        // Write to data to file after streaming to RAM, because ASCII output is too slow for realtime.
-        qDebug() << "Writing stream data in RAM to disk" ;
-
-        setupadq.stream_ch &= 0x07;
-        QFile fileA("dataA.txt");
-        QFile fileB("dataB.txt");
-        switch(setupadq.stream_ch)
-        {
-        case ADQ214_STREAM_ENABLED_BOTH:
-        {
-            QTextStream out(&fileA);
-            QTextStream out2(&fileB);
-            samples_to_collect = setupadq.num_samples_collect;
-            rowCHA.resize((setupadq.num_samples_collect));      //设置数组大小为采集点数
-            rowCHB.resize((setupadq.num_samples_collect));
-            int j=0,k=0;         //用于双通道计数
-            if(fileA.open(QFile::WriteOnly)&&fileB.open(QFile::WriteOnly))
-            {
-                while (samples_to_collect > 0)
-                {
-                    for (int i=0; (i<4) && (samples_to_collect>0); i++)
-                    {
-
-                        out << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
-                        rowCHA[j]=setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
-                        j++;
-                        samples_to_collect--;
-                    }
-
-                    for (int i=0; (i<4) && (samples_to_collect>0); i++)
-                    {
-
-                        out2 << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
-                        rowCHB[k]=setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
-                        k++;
-                        samples_to_collect--;
-                    }
-                }
-            }
-            fileA.close();
-            fileB.close();
-            if(!method)
-            {
-                lineChart.line(rowCHA,(setupadq.num_samples_collect)/2);  //数组传给linechart
-                drawLayoutCHA->addWidget(lineChart.chartView);
-                lineChart.line(rowCHB,(setupadq.num_samples_collect)/2);
-                drawLayoutCHB->addWidget(lineChart.chartView);
-            }
-            else
-            {
-                barChart.chart(rowCHA,(setupadq.num_samples_collect)/2);  //数组传给linechart
-                drawLayoutCHA->addWidget(barChart.chartView);
-                barChart.chart(rowCHB,(setupadq.num_samples_collect)/2);  //数组传给linechart
-                drawLayoutCHB->addWidget(barChart.chartView);
-            }
-            break;
-        }
-        case ADQ214_STREAM_ENABLED_A:
-        {
-            rowCHA.resize(setupadq.num_samples_collect);
-            if(fileA.open(QFile::WriteOnly))
-            {
-                QTextStream out(&fileA);
-                for (int i=0; i<setupadq.num_samples_collect; i++)
-                {
-                    out<<setupadq.data_stream_target[i]<<endl;
-                    rowCHA[i]=setupadq.data_stream_target[i];
-                }
-            }
-            fileA.close();
-            if(!method)
-            {
-                lineChart.line(rowCHA,setupadq.num_samples_collect);  //数组传给linechart
-                drawLayoutCHA->addWidget(lineChart.chartView);
-                // b.chartView->setWindowFlags(Qt::Window|Qt::WindowMinimizeButtonHint
-                //               |Qt::WindowMaximizeButtonHint|Qt::WindowCloseButtonHint);
-            }
-            else
-            {
-                barChart.chart(rowCHA,setupadq.num_samples_collect);  //数组传给barChart
-                drawLayoutCHA->addWidget(barChart.chartView);
-            }
-            break;
-        }
-        case ADQ214_STREAM_ENABLED_B:
-        {
-            rowCHB.resize(setupadq.num_samples_collect);
-            if(fileB.open(QFile::WriteOnly))
-            {
-                QTextStream out(&fileB);
-                for (int i=0; i<setupadq.num_samples_collect; i++)
-                {
-                    out<<setupadq.data_stream_target[i]<<endl;
-                    rowCHB[i]=setupadq.data_stream_target[i];
-                }
-            }
-            fileB.close();
-            if(!method)
-            {
-                lineChart.line(rowCHB,setupadq.num_samples_collect);  //数组传给linechart
-                drawLayoutCHB->addWidget(lineChart.chartView);
-            }
-            else
-            {
-                barChart.chart(rowCHB,setupadq.num_samples_collect);  //数组传给barChartchart
-                drawLayoutCHB->addWidget(barChart.chartView);
-            }
-            break;
-        }
-        default:
-            break;
-        }
-
-        qDebug() << ("Collect finished!");
-        delete setupadq.data_stream_target;
-        if(success == 0)
-        {
-            qDebug() << "Error!";
-            DeleteADQControlUnit(adq_cu);
-        }
-    }
 }
 
 
@@ -642,4 +366,371 @@ void MainWindow::on_pushButton_clicked() //放大按钮
             drawLayoutCHA->addWidget(CHA);
         }
     }
-}											  
+}
+
+void MainWindow::Clear_Dispaly()                   // 清除数据绘图显示
+{
+    while(drawLayoutCHA->count())                  // 删除布局中的所有控件
+    {
+        QWidget *p = this->drawLayoutCHA->itemAt(0)->widget();
+        p->setParent (NULL);
+        this->drawLayoutCHA->removeWidget(p);
+        delete p;
+    }
+    while(drawLayoutCHB->count())                  // 删除布局中的所有控件
+    {
+        QWidget *p = this->drawLayoutCHB->itemAt(0)->widget();
+        p->setParent (NULL);
+        this->drawLayoutCHB->removeWidget(p);
+        delete p;
+    }
+    CHA = NULL;
+    CHB = NULL;
+}
+
+
+//开始采集
+void MainWindow::on_pushButton_CaptureStart_clicked()
+{
+
+    if(!Config_ADQ214())
+        return;
+    Clear_Dispaly();
+
+    setupadq.num_samples_collect = ui->lineEdit_SampTotNum->text().toInt();  //设置采样点数
+    setupadq.data_stream_target = new qint16[setupadq.num_samples_collect];
+    memset(setupadq.data_stream_target, 0, setupadq.num_samples_collect);
+
+    if(!CaptureData2Buffer())
+        return;
+
+    WriteData2disk();
+    Display_Data();
+
+    qDebug() << ("Collect finished!");
+    delete setupadq.data_stream_target;
+    if(success == 0)
+    {
+        qDebug() << "Error!";
+        DeleteADQControlUnit(adq_cu);
+    }
+}
+
+bool MainWindow::Config_ADQ214()                   // 配置采集卡
+{
+    success = false;
+    if (!isADQ214Connected)
+    {
+        QMessageBox::critical(this, QString::fromStdString("采集卡未连接！！"), QString::fromStdString("采集卡未连接"));
+    }
+    else
+    {
+        ADQ214_SetDataFormat(adq_cu, adq_num,ADQ214_DATA_FORMAT_UNPACKED_14BIT);
+        // 设置TransferBuffer大小及数量
+
+        if(ui->radioButton_customize->isChecked())
+        {
+            success = ADQ214_SetTransferBuffers(adq_cu, adq_num, setupadq.num_buffers, setupadq.size_buffers);
+        }
+        qDebug() << "num_buffer = " << setupadq.num_buffers;
+        qDebug() << "size_buffer = " << setupadq.size_buffers;
+
+        //设置数据简化方案
+        if(ADQ214_SetSampleSkip(adq_cu, adq_num, setupadq.num_sample_skip) == 0)
+        {
+            qDebug() << "Error";
+            DeleteADQControlUnit(adq_cu);
+        }
+
+
+        // 设置采集通道
+        qDebug() << "stream_ch=" << setupadq.stream_ch;
+        switch(setupadq.stream_ch) {
+        case 0:
+            setupadq.stream_ch = ADQ214_STREAM_ENABLED_A;
+            qDebug() << "A";
+            break;
+        case 1:
+            setupadq.stream_ch = ADQ214_STREAM_ENABLED_B;
+            qDebug() << "B";
+            break;
+        case 2:
+            setupadq.stream_ch = ADQ214_STREAM_ENABLED_BOTH;
+            qDebug() << "Bo";
+            break;
+        }
+        // 设置触发方式：无触发、软件触发、外触发
+
+        qDebug() << "tri_mode=" << setupadq.trig_mode;
+        switch(setupadq.trig_mode)
+        {
+        case 0:
+            setupadq.stream_ch &= 0x7;
+            qDebug() << "no";
+            break;
+        case 1:
+        {
+            ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
+            setupadq.stream_ch |= 0x8;
+            qDebug() << "soft";
+        }
+            break;
+        case 2:
+        {
+            ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
+            setupadq.stream_ch |= 0x8;
+            qDebug() << "exter";
+        }
+            break;
+        }
+
+        setupadq.clock_source = 0;            //0 = Internal clock
+        success = ADQ214_SetClockSource(adq_cu, adq_num, setupadq.clock_source);
+
+        setupadq.pll_divider = 2;            //在Internal clock=0时，设置，f_clk = 800MHz/divider
+        success = success && ADQ214_SetPllFreqDivider(adq_cu, adq_num, setupadq.pll_divider);
+    }
+    return success;
+}
+
+bool MainWindow::CaptureData2Buffer()                   // 采集数据到缓存
+{
+    success = ADQ214_DisarmTrigger(adq_cu, adq_num);
+    success = success && ADQ214_SetStreamStatus(adq_cu, adq_num,setupadq.stream_ch);
+    success = success && ADQ214_ArmTrigger(adq_cu, adq_num);
+
+
+    unsigned int samples_to_collect;
+    samples_to_collect = setupadq.num_samples_collect;
+
+    int tmpval = 0;
+
+    if (setupadq.trig_mode == 1)	    //触发模式为sofware
+    {
+        ADQ214_SWTrig(adq_cu, adq_num);
+    }
+
+    // ADQ214_SWTrig(adq_cu, adq_num);
+    while (samples_to_collect > 0)
+    {
+        tmpval = tmpval + 1;
+        qDebug() << "Loops:" << tmpval;
+        if (setupadq.trig_mode == 1)	//If trigger mode is sofware
+        {
+            ADQ214_SWTrig(adq_cu, adq_num);
+        }
+        do
+        {
+            setupadq.collect_result = ADQ214_GetTransferBufferStatus(adq_cu, adq_num, &setupadq.buffers_filled);
+            qDebug() << ("Filled: ") << setupadq.buffers_filled;
+        } while ((setupadq.buffers_filled == 0) && (setupadq.collect_result));
+
+        setupadq.collect_result = ADQ214_CollectDataNextPage(adq_cu, adq_num);
+
+        int samples_in_buffer;
+        if(ADQ214_GetSamplesPerPage(adq_cu, adq_num) > samples_to_collect)
+        {
+            samples_in_buffer = samples_to_collect;
+            qDebug() << "samples_in_buffer = " << samples_in_buffer;
+        }
+        else
+        {
+            samples_in_buffer = ADQ214_GetSamplesPerPage(adq_cu, adq_num);
+            qDebug() << "samples_in_buffer = " << samples_in_buffer;
+        }
+
+        if (ADQ214_GetStreamOverflow(adq_cu, adq_num))
+        {
+            qDebug() << ("Warning: Streaming Overflow!");
+            setupadq.collect_result = 0;
+        }
+
+        if (setupadq.collect_result)
+        {
+            // Buffer all data in RAM before writing to disk, if streaming to disk is need a high performance
+            // procedure could be implemented here.
+            // Data format is set to 16 bits, so buffer size is Samples*2 bytes
+            memcpy((void*)&setupadq.data_stream_target[setupadq.num_samples_collect - samples_to_collect],
+                    ADQ214_GetPtrStream(adq_cu, adq_num), samples_in_buffer* sizeof(signed short));
+            samples_to_collect -= samples_in_buffer;
+            qDebug() << " AA= "<<samples_to_collect;
+        }
+        else
+        {
+            qDebug() << ("Collect next data page failed!");
+            samples_to_collect = 0;
+        }
+    }
+
+    success = success && ADQ_DisarmTrigger(adq_cu, adq_num);
+
+    success = success && ADQ214_SetStreamStatus(adq_cu, adq_num,0);
+    return success;
+}
+
+void MainWindow::WriteData2disk()                   // 配置采集卡
+{
+    // Write to data to file after streaming to RAM, because ASCII output is too slow for realtime.
+    qDebug() << "Writing stream data in RAM to disk" ;
+
+    setupadq.stream_ch &= 0x07;
+    QFile fileA("dataA.txt");
+    QFile fileB("dataB.txt");
+//    QFile fileBoth("dataBoth.txt");
+
+
+    switch(setupadq.stream_ch)
+    {
+    case ADQ214_STREAM_ENABLED_BOTH:
+    {
+        QTextStream out(&fileA);
+        QTextStream out2(&fileB);
+
+        unsigned int samples_to_collect;
+        samples_to_collect = setupadq.num_samples_collect;
+        if(fileA.open(QFile::WriteOnly)&&fileB.open(QFile::WriteOnly))
+        {
+            while (samples_to_collect > 0)
+            {
+                for (int i=0; (i<4) && (samples_to_collect>0); i++)
+                {
+
+                    out << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                    samples_to_collect--;
+                }
+
+                for (int i=0; (i<4) && (samples_to_collect>0); i++)
+                {
+
+                    out2 << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                    samples_to_collect--;
+                }
+            }
+        }
+        fileA.close();
+        fileB.close();
+        break;
+    }
+    case ADQ214_STREAM_ENABLED_A:
+    {
+        if(fileA.open(QFile::WriteOnly))
+        {
+            QTextStream out(&fileA);
+            for (int i=0; i<setupadq.num_samples_collect; i++)
+            {
+                out<<setupadq.data_stream_target[i]<<endl;
+            }
+        }
+        fileA.close();
+        break;
+    }
+    case ADQ214_STREAM_ENABLED_B:
+    {
+        if(fileB.open(QFile::WriteOnly))
+        {
+            QTextStream out(&fileB);
+            for (int i=0; i<setupadq.num_samples_collect; i++)
+            {
+                out<<setupadq.data_stream_target[i]<<endl;
+            }
+        }
+        fileB.close();
+        break;
+    }
+    default:
+        break;
+    }
+}
+
+void MainWindow::Display_Data()                   // 显示数据
+{
+    switch(setupadq.stream_ch)
+    {
+    case ADQ214_STREAM_ENABLED_BOTH:
+    {
+        unsigned int samples_to_collect;
+        samples_to_collect = setupadq.num_samples_collect;
+        rowCHA.resize((setupadq.num_samples_collect));      //设置数组大小为采集点数
+        rowCHB.resize((setupadq.num_samples_collect));
+        int j=0,k=0;         //用于双通道计数
+        while (samples_to_collect > 0)
+        {
+            for (int i=0; (i<4) && (samples_to_collect>0); i++)
+            {
+
+                rowCHA[j] = setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
+                j++;
+                samples_to_collect--;
+            }
+
+            for (int i=0; (i<4) && (samples_to_collect>0); i++)
+            {
+
+                rowCHB[k] = setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
+                k++;
+                samples_to_collect--;
+            }
+        }
+
+        if(!method)
+        {
+            lineChart.line(rowCHA,(setupadq.num_samples_collect)/2);  //数组传给linechart
+            drawLayoutCHA->addWidget(lineChart.chartView);
+            lineChart.line(rowCHB,(setupadq.num_samples_collect)/2);
+            drawLayoutCHB->addWidget(lineChart.chartView);
+        }
+        else
+        {
+            barChart.chart(rowCHA,(setupadq.num_samples_collect)/2);  //数组传给linechart
+            drawLayoutCHA->addWidget(barChart.chartView);
+            barChart.chart(rowCHB,(setupadq.num_samples_collect)/2);  //数组传给linechart
+            drawLayoutCHB->addWidget(barChart.chartView);
+        }
+        break;
+    }
+    case ADQ214_STREAM_ENABLED_A:
+    {
+        rowCHA.resize(setupadq.num_samples_collect);
+
+        for (int i=0; i<setupadq.num_samples_collect; i++)
+        {
+            rowCHA[i] = setupadq.data_stream_target[i];
+        }
+        if(!method)
+        {
+            lineChart.line(rowCHA,setupadq.num_samples_collect);  //数组传给linechart
+            drawLayoutCHA->addWidget(lineChart.chartView);
+            // b.chartView->setWindowFlags(Qt::Window|Qt::WindowMinimizeButtonHint
+            //               |Qt::WindowMaximizeButtonHint|Qt::WindowCloseButtonHint);
+        }
+        else
+        {
+            barChart.chart(rowCHA,setupadq.num_samples_collect);  //数组传给barChart
+            drawLayoutCHA->addWidget(barChart.chartView);
+        }
+        break;
+    }
+    case ADQ214_STREAM_ENABLED_B:
+    {
+        rowCHB.resize(setupadq.num_samples_collect);
+
+        for (int i=0; i<setupadq.num_samples_collect; i++)
+        {
+            rowCHB[i] = setupadq.data_stream_target[i];
+        }
+        if(!method)
+        {
+            lineChart.line(rowCHB,setupadq.num_samples_collect);  //数组传给linechart
+            drawLayoutCHB->addWidget(lineChart.chartView);
+        }
+        else
+        {
+            barChart.chart(rowCHB,setupadq.num_samples_collect);  //数组传给barChartchart
+            drawLayoutCHB->addWidget(barChart.chartView);
+        }
+        break;
+    }
+    default:
+        break;
+    }
+}

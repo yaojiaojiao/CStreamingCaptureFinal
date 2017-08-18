@@ -21,7 +21,7 @@ typedef struct
     int clock_source;                   //时钟源
     int pll_divider;
     int num_samples_collect;
-    unsigned int num_sample_skip = 128;  //设为128，省区sample_decimation
+    int num_sample_skip;
     int trig_mode;
 
     unsigned int buffers_filled;
@@ -33,6 +33,12 @@ typedef struct
     FILE* outfileA = NULL;
     FILE* outfileB = NULL;
 }setupADQ;
+
+union PSD_DATA
+{
+    quint64 data64;
+    ushort  pos[4];
+};
 
 namespace Ui {
 class MainWindow;
@@ -96,7 +102,7 @@ private slots:
 
     void on_radioButton_customize_clicked();
 
-    void on_pushButton_sampleStart_clicked();
+    void on_pushButton_CaptureStart_clicked();
 
     void on_lineEdit_BufferNum_returnPressed();
 
@@ -106,7 +112,15 @@ private slots:
 	
     void on_methodBox_activated(int index);
 
-    void on_pushButton_clicked();							   
+    void on_pushButton_clicked();
+
+    void Clear_Dispaly();           // 清除数据绘图显示
+
+    bool Config_ADQ214();           // 配置采集卡
+    bool CaptureData2Buffer();      // 采集数据到缓存
+    void WriteData2disk();          // 写入采集数据到文件
+    void Display_Data();            // 显示数据曲线
+
 private:
 
     Ui::MainWindow *ui;
@@ -122,7 +136,7 @@ private:
 
     QStatusBar *bar;
     QLabel *ADQ_state;
-    void Create_statusbar();          //创建状态栏
+    void Create_statusbar(void);          //创建状态栏
 
     quint16 write_data0;
     quint16 write_data1;
@@ -148,10 +162,11 @@ private:
 
     barchart barChart;
     linechart lineChart;
-    bool method=false; //用于判断折线/柱状图
+    bool method; //用于判断折线/柱状图
     QVBoxLayout *drawLayoutCHA,*drawLayoutCHB;
     QVector<float> rowCHA, rowCHB;  //新建动态数组
     QWidget *CHA, *CHB;  //用于管理图像的放大与取消
+    PSD_DATA *psd_res;
 };
 
 #endif // MAINWINDOW_H

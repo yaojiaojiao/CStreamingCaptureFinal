@@ -17,7 +17,7 @@
    <string/>
   </property>
   <widget class="QWidget" name="centralWidget">
-   <widget class="QPushButton" name="pushButton_sampleStart">
+   <widget class="QPushButton" name="pushButton_CaptureStart">
     <property name="geometry">
      <rect>
       <x>910</x>
@@ -1394,7 +1394,7 @@
      <rect>
       <x>330</x>
       <y>270</y>
-      <width>649</width>
+      <width>681</width>
       <height>329</height>
      </rect>
     </property>
