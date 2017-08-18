@@ -239,7 +239,7 @@ void MainWindow::on_pushButton_sampleStart_clicked()
                 // procedure could be implemented here.
                 // Data format is set to 16 bits, so buffer size is Samples*2 bytes
                 memcpy((void*)&setupadq.data_stream_target[setupadq.num_samples_collect - samples_to_collect],
-                        ADQ214_GetPtrStream(adq_cu, adq_num), samples_in_buffe r* sizeof(signed short));
+                        ADQ214_GetPtrStream(adq_cu, adq_num), samples_in_buffer* sizeof(signed short));
                 samples_to_collect -= samples_in_buffer;
                 qDebug() << " AA= "<<samples_to_collect;
             }
@@ -287,7 +287,7 @@ void MainWindow::on_pushButton_sampleStart_clicked()
                     {
 
                         out2 << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
-                        rowCB[k]=setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
+                        rowCHB[k]=setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
                         k++;
                         samples_to_collect--;
                     }
