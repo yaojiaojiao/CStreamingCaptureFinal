@@ -132,7 +132,6 @@ void MainWindow::on_pushButton_sampleStart_clicked()
             DeleteADQControlUnit(adq_cu);
         }
 
-
         // 设置采集通道
         qDebug() << "stream_ch=" << setupadq.stream_ch;
         switch(setupadq.stream_ch) {
@@ -270,6 +269,7 @@ void MainWindow::on_pushButton_sampleStart_clicked()
             samples_to_collect = setupadq.num_samples_collect;
             rowCHA.resize((setupadq.num_samples_collect));      //设置数组大小为采集点数
             rowCHB.resize((setupadq.num_samples_collect));
+            int j=0,k=0;         //用于双通道计数
             if(fileA.open(QFile::WriteOnly)&&fileB.open(QFile::WriteOnly))
             {
                 while (samples_to_collect > 0)
@@ -278,6 +278,8 @@ void MainWindow::on_pushButton_sampleStart_clicked()
                     {
 
                         out << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                        rowCHA[j]=setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
+                        j++;
                         samples_to_collect--;
                     }
 
@@ -285,6 +287,8 @@ void MainWindow::on_pushButton_sampleStart_clicked()
                     {
 
                         out2 << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                        rowCB[k]=setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
+                        k++;
                         samples_to_collect--;
                     }
                 }
