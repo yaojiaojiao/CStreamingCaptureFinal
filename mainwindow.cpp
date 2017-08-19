@@ -43,7 +43,7 @@ MainWindow::MainWindow(QWidget *parent) :
     on_lineEdit_BufferNum_returnPressed();
     on_lineEdit_BufferSize_returnPressed();
     on_methodBox_activated(1);
-
+    psd_res = nullptr;
 }
 
 void MainWindow::Create_statusbar()                   //创建状态栏
@@ -83,6 +83,8 @@ void MainWindow::connectADQDevice()
 MainWindow::~MainWindow()
 {
     delete ui;
+    if (psd_res != nullptr)
+        delete psd_res;
 }
 
 //默认buffers
@@ -404,7 +406,8 @@ void MainWindow::on_pushButton_CaptureStart_clicked()
     if(!CaptureData2Buffer())
         return;
 
-    WriteData2disk();
+    //    WriteData2disk();
+    WriteSpecData2disk();
     Display_Data();
 
     qDebug() << ("Collect finished!");
@@ -568,7 +571,7 @@ bool MainWindow::CaptureData2Buffer()                   // 采集数据到缓存
     return success;
 }
 
-void MainWindow::WriteData2disk()                   // 配置采集卡
+void MainWindow::WriteData2disk()                   // 将数据直接写入文件
 {
     // Write to data to file after streaming to RAM, because ASCII output is too slow for realtime.
     qDebug() << "Writing stream data in RAM to disk" ;
@@ -576,7 +579,7 @@ void MainWindow::WriteData2disk()                   // 配置采集卡
     setupadq.stream_ch &= 0x07;
     QFile fileA("dataA.txt");
     QFile fileB("dataB.txt");
-//    QFile fileBoth("dataBoth.txt");
+    //    QFile fileBoth("dataBoth.txt");
 
 
     switch(setupadq.stream_ch)
@@ -596,6 +599,7 @@ void MainWindow::WriteData2disk()                   // 配置采集卡
                 {
 
                     out << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                    qDebug()<<"CHA -- "<<setupadq.num_samples_collect-samples_to_collect;
                     samples_to_collect--;
                 }
 
@@ -603,6 +607,7 @@ void MainWindow::WriteData2disk()                   // 配置采集卡
                 {
 
                     out2 << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                    qDebug()<<"CHB -- "<<setupadq.num_samples_collect-samples_to_collect;
                     samples_to_collect--;
                 }
             }
@@ -640,6 +645,48 @@ void MainWindow::WriteData2disk()                   // 配置采集卡
     default:
         break;
     }
+}
+
+void MainWindow::WriteSpecData2disk()                   // 将数据转换成功率谱，写入到文件
+{
+    // Write to data to file after streaming to RAM, because ASCII output is too slow for realtime.
+    qDebug() << "Writing streamed Spectrum data in RAM to disk" ;
+
+    setupadq.stream_ch &= 0x07;
+
+    QFile Specfile("data_Spec.txt");
+
+    if(setupadq.stream_ch == ADQ214_STREAM_ENABLED_BOTH)
+    {
+        QTextStream out(&Specfile);
+
+        unsigned int samples_to_collect;
+        samples_to_collect = setupadq.num_samples_collect;
+
+        if (psd_res != nullptr)
+            delete psd_res;
+        int psd_datanum = samples_to_collect/4;
+        psd_res = new PSD_DATA[psd_datanum];
+        int i = 0, k = 0;
+
+        for (k=0; (k<psd_datanum); k++,k++)
+        {
+            psd_res[BitReverseIndex[k]].pos[0] = setupadq.data_stream_target[i];
+            psd_res[BitReverseIndex[k]].pos[1] = setupadq.data_stream_target[i+1];
+            psd_res[BitReverseIndex[k]].pos[2] = setupadq.data_stream_target[i+4];
+            psd_res[BitReverseIndex[k]].pos[3] = setupadq.data_stream_target[i+5];
+            psd_res[BitReverseIndex[k+1]].pos[0] = setupadq.data_stream_target[i+2];
+            psd_res[BitReverseIndex[k+1]].pos[1] = setupadq.data_stream_target[i+3];
+            psd_res[BitReverseIndex[k+1]].pos[2] = setupadq.data_stream_target[i+6];
+            psd_res[BitReverseIndex[k+1]].pos[3] = setupadq.data_stream_target[i+7];
+            i = i + 8;
+            qDebug()<<"Union.Spec["<<k<<"] = "<<psd_res[k].data64;
+            qDebug()<<"Union.Spec["<<k+1<<"] = "<<psd_res[k+1].data64;
+        }
+        for (k=0; (k<psd_datanum); k++)
+            out <<psd_res[k].data64 << endl;
+    }
+    Specfile.close();
 }
 
 void MainWindow::Display_Data()                   // 显示数据
