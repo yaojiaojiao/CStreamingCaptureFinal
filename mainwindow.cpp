@@ -7,6 +7,7 @@
 #include <memory.h>
 #include <stdio.h>
 #include <QDataStream>
+#include <QtMath>
 
 //#define SUCCESS(f) = {if(!(f)){QMessageBox::critical(this, QString::fromStdString("提示"), QString::fromStdString("Error"));}}
 bool success = true;
@@ -428,7 +429,6 @@ void MainWindow::Clear_Dispaly()                   // 清除数据绘图显示
     CHB = NULL;
 }
 
-
 //开始采集
 void MainWindow::on_pushButton_CaptureStart_clicked()
 {
@@ -444,9 +444,9 @@ void MainWindow::on_pushButton_CaptureStart_clicked()
     if(!CaptureData2Buffer())
         return;
 
-    //    WriteData2disk();
+    WriteData2disk();
     WriteSpecData2disk();
-    Display_Data();
+    //    Display_Data();
 
     qDebug() << ("Collect finished!");
     delete setupadq.data_stream_target;
@@ -472,9 +472,12 @@ bool MainWindow::Config_ADQ214()                   // 配置采集卡
         if(ui->radioButton_customize->isChecked())
         {
             success = ADQ214_SetTransferBuffers(adq_cu, adq_num, setupadq.num_buffers, setupadq.size_buffers);
+            qDebug() << "num_buffer = " << setupadq.num_buffers;
+            qDebug() << "size_buffer = " << setupadq.size_buffers;
         }
-        qDebug() << "num_buffer = " << setupadq.num_buffers;
-        qDebug() << "size_buffer = " << setupadq.size_buffers;
+        qDebug() << "Default_SamplesPerPage = " << ADQ214_GetSamplesPerPage(adq_cu, adq_num);
+        //        qDebug() << "Default_BufferSize = " << ADQ214_GetBufferSize(adq_cu, adq_num);
+        //        qDebug() << "Default_BufferSizePages = " << ADQ214_GetBufferSizePages(adq_cu, adq_num);
 
         //设置数据简化方案
         if(ADQ214_SetSampleSkip(adq_cu, adq_num, setupadq.num_sample_skip) == 0)
@@ -482,7 +485,6 @@ bool MainWindow::Config_ADQ214()                   // 配置采集卡
             qDebug() << "Error";
             DeleteADQControlUnit(adq_cu);
         }
-
 
         // 设置采集通道
         qDebug() << "stream_ch=" << setupadq.stream_ch;
@@ -540,26 +542,32 @@ bool MainWindow::CaptureData2Buffer()                   // 采集数据到缓存
     success = success && ADQ214_SetStreamStatus(adq_cu, adq_num,setupadq.stream_ch);
     success = success && ADQ214_ArmTrigger(adq_cu, adq_num);
 
-
-    unsigned int samples_to_collect;
-    samples_to_collect = setupadq.num_samples_collect;
-
-    int tmpval = 0;
-
-    if (setupadq.trig_mode == 1)	    //触发模式为sofware
+    if (setupadq.trig_mode == 1)	    // 如果触发模式为sofware
     {
         ADQ214_SWTrig(adq_cu, adq_num);
     }
 
-    // ADQ214_SWTrig(adq_cu, adq_num);
+    unsigned int samples_to_collect;
+    samples_to_collect = setupadq.num_samples_collect;
+
+    int nloops = 0;
     while (samples_to_collect > 0)
     {
-        tmpval = tmpval + 1;
-        qDebug() << "Loops:" << tmpval;
-        if (setupadq.trig_mode == 1)	//If trigger mode is sofware
+        nloops ++;
+        qDebug() << "Loops:" << nloops;
+        if (setupadq.trig_mode == 1)        //If trigger mode is sofware
         {
             ADQ214_SWTrig(adq_cu, adq_num);
         }
+        else if (setupadq.trig_mode == 0)	//If trigger mode is 无触发
+        {
+            if(ui->checkBox_0x30->isChecked())
+            {
+                ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFFFE);   // bit[0]置0
+                ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0001);   // bit[0]置1
+            }
+        }
+
         do
         {
             setupadq.collect_result = ADQ214_GetTransferBufferStatus(adq_cu, adq_num, &setupadq.buffers_filled);
@@ -568,17 +576,8 @@ bool MainWindow::CaptureData2Buffer()                   // 采集数据到缓存
 
         setupadq.collect_result = ADQ214_CollectDataNextPage(adq_cu, adq_num);
 
-        int samples_in_buffer;
-        if(ADQ214_GetSamplesPerPage(adq_cu, adq_num) > samples_to_collect)
-        {
-            samples_in_buffer = samples_to_collect;
-            qDebug() << "samples_in_buffer = " << samples_in_buffer;
-        }
-        else
-        {
-            samples_in_buffer = ADQ214_GetSamplesPerPage(adq_cu, adq_num);
-            qDebug() << "samples_in_buffer = " << samples_in_buffer;
-        }
+        int samples_in_buffer = qMin(ADQ214_GetSamplesPerPage(adq_cu, adq_num), samples_to_collect);
+        qDebug() << "samples_in_buffer = " << samples_in_buffer;
 
         if (ADQ214_GetStreamOverflow(adq_cu, adq_num))
         {
@@ -617,8 +616,6 @@ void MainWindow::WriteData2disk()                   // 将数据直接写入文�
     setupadq.stream_ch &= 0x07;
     QFile fileA("dataA.txt");
     QFile fileB("dataB.txt");
-    //    QFile fileBoth("dataBoth.txt");
-
 
     switch(setupadq.stream_ch)
     {
@@ -627,15 +624,13 @@ void MainWindow::WriteData2disk()                   // 将数据直接写入文�
         QTextStream out(&fileA);
         QTextStream out2(&fileB);
 
-        unsigned int samples_to_collect;
-        samples_to_collect = setupadq.num_samples_collect;
+        unsigned int samples_to_collect = setupadq.num_samples_collect;
         if(fileA.open(QFile::WriteOnly)&&fileB.open(QFile::WriteOnly))
         {
             while (samples_to_collect > 0)
             {
                 for (int i=0; (i<4) && (samples_to_collect>0); i++)
                 {
-
                     out << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
                     qDebug()<<"CHA -- "<<setupadq.num_samples_collect-samples_to_collect;
                     samples_to_collect--;
@@ -643,7 +638,6 @@ void MainWindow::WriteData2disk()                   // 将数据直接写入文�
 
                 for (int i=0; (i<4) && (samples_to_collect>0); i++)
                 {
-
                     out2 << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
                     qDebug()<<"CHB -- "<<setupadq.num_samples_collect-samples_to_collect;
                     samples_to_collect--;
@@ -688,46 +682,49 @@ void MainWindow::WriteData2disk()                   // 将数据直接写入文�
 void MainWindow::WriteSpecData2disk()                   // 将数据转换成功率谱，写入到文件
 {
     // Write to data to file after streaming to RAM, because ASCII output is too slow for realtime.
-    qDebug() << "Writing streamed Spectrum data in RAM to disk" ;
+
+    if(setupadq.num_samples_collect%2048 != 0)
+        return;
+    int nLoops = setupadq.num_samples_collect/2048;
+
 
     setupadq.stream_ch &= 0x07;
 
-
-    QFile Specfile("data_Spec.txt");
-
     if(setupadq.stream_ch == ADQ214_STREAM_ENABLED_BOTH)
     {
-        QTextStream out(&Specfile);
-
-        unsigned int samples_to_collect;
-        samples_to_collect = setupadq.num_samples_collect;
-
         if (psd_res != nullptr)
             delete psd_res;
-        int psd_datanum = samples_to_collect/4;
+        int psd_datanum = 512*nLoops;        //功率谱长度
         psd_res = new PSD_DATA[psd_datanum];
 
-        int i = 0, k = 0;
-        for (k=0; (k<psd_datanum); k++,k++)
+        int i = 0, k = 0, l = 0;
+        for (l=0;l<nLoops;l++)
+            for (k=0,i=0; (k<512); k++,k++)
+            {
+
+                psd_res[512*l + BitReverseIndex[k]].pos[0] = setupadq.data_stream_target[512*l + i];
+                psd_res[512*l + BitReverseIndex[k]].pos[1] = setupadq.data_stream_target[512*l + i+1];
+                psd_res[512*l + BitReverseIndex[k]].pos[2] = setupadq.data_stream_target[512*l + i+4];
+                psd_res[512*l + BitReverseIndex[k]].pos[3] = setupadq.data_stream_target[512*l + i+5];
+                psd_res[512*l + BitReverseIndex[k+1]].pos[0] = setupadq.data_stream_target[512*l + i+2];
+                psd_res[512*l + BitReverseIndex[k+1]].pos[1] = setupadq.data_stream_target[512*l + i+3];
+                psd_res[512*l + BitReverseIndex[k+1]].pos[2] = setupadq.data_stream_target[512*l + i+6];
+                psd_res[512*l + BitReverseIndex[k+1]].pos[3] = setupadq.data_stream_target[512*l + i+7];
+
+                i = i + 8;
+                qDebug()<<"Union.Spec["<<BitReverseIndex[k]<<"] = "<<psd_res[512*l + BitReverseIndex[k]].data64;
+                qDebug()<<"Union.Spec["<<BitReverseIndex[k+1]<<"] = "<<psd_res[512*l + BitReverseIndex[k+1]].data64;
+            }
+        qDebug() << "Writing streamed Spectrum data in RAM to disk" ;
+        QFile Specfile("data_Spec.txt");
+        if(Specfile.open(QFile::WriteOnly))
         {
-            psd_res[BitReverseIndex[k]].pos[0] = setupadq.data_stream_target[i];
-            psd_res[BitReverseIndex[k]].pos[1] = setupadq.data_stream_target[i+1];
-            psd_res[BitReverseIndex[k]].pos[2] = setupadq.data_stream_target[i+4];
-            psd_res[BitReverseIndex[k]].pos[3] = setupadq.data_stream_target[i+5];
-            psd_res[BitReverseIndex[k+1]].pos[0] = setupadq.data_stream_target[i+2];
-            psd_res[BitReverseIndex[k+1]].pos[1] = setupadq.data_stream_target[i+3];
-            psd_res[BitReverseIndex[k+1]].pos[2] = setupadq.data_stream_target[i+6];
-            psd_res[BitReverseIndex[k+1]].pos[3] = setupadq.data_stream_target[i+7];
-
-            i = i + 8;
-            qDebug()<<"Union.Spec["<<k<<"] = "<<psd_res[k].data64;
-            qDebug()<<"Union.Spec["<<k+1<<"] = "<<psd_res[k+1].data64;
+            QTextStream out(&Specfile);
+            for (k=0; (k<psd_datanum); k++)
+                out <<psd_res[k].data64 << endl;
         }
-
-        for (k=0; (k<psd_datanum); k++)
-            out <<psd_res[k].data64 << endl;
+        Specfile.close();
     }
-    Specfile.close();
 }
 
 void MainWindow::Display_Data()                   // 显示数据
@@ -745,16 +742,14 @@ void MainWindow::Display_Data()                   // 显示数据
         {
             for (int i=0; (i<4) && (samples_to_collect>0); i++)
             {
-
-                rowCHA[j] = setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
+                rowCHA[j] = setupadq.data_stream_target[setupadq.num_samples_collect - samples_to_collect];
                 j++;
                 samples_to_collect--;
             }
 
             for (int i=0; (i<4) && (samples_to_collect>0); i++)
             {
-
-                rowCHB[k] = setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect];
+                rowCHB[k] = setupadq.data_stream_target[setupadq.num_samples_collect - samples_to_collect];
                 k++;
                 samples_to_collect--;
             }

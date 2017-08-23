@@ -1808,6 +1808,25 @@
      </widget>
     </widget>
    </widget>
+   <widget class="QCheckBox" name="checkBox_0x30">
+    <property name="geometry">
+     <rect>
+      <x>710</x>
+      <y>200</y>
+      <width>111</width>
+      <height>18</height>
+     </rect>
+    </property>
+    <property name="font">
+     <font>
+      <family>Microsoft YaHei</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
+    <property name="text">
+     <string>输出Start信号</string>
+    </property>
+   </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
    <property name="geometry">
