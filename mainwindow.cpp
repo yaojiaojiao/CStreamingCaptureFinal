@@ -444,7 +444,7 @@ void MainWindow::on_pushButton_CaptureStart_clicked()
     if(!CaptureData2Buffer())
         return;
 
-//    WriteData2disk();
+    //    WriteData2disk();
     WriteSpecData2disk();
     Display_Data();
 
@@ -609,7 +609,7 @@ bool MainWindow::CaptureData2Buffer()                   // 采集数据到缓存
     return success;
 }
 
-void MainWindow::WriteData2disk()                   // 配置采集卡
+void MainWindow::WriteData2disk()                   // 将数据直接写入文件
 {
     // Write to data to file after streaming to RAM, because ASCII output is too slow for realtime.
     qDebug() << "Writing stream data in RAM to disk" ;
@@ -685,18 +685,19 @@ void MainWindow::WriteData2disk()                   // 配置采集卡
     }
 }
 
-void MainWindow::WriteSpecData2disk()                   // 配置采集卡
+void MainWindow::WriteSpecData2disk()                   // 将数据转换成功率谱，写入到文件
 {
     // Write to data to file after streaming to RAM, because ASCII output is too slow for realtime.
     qDebug() << "Writing streamed Spectrum data in RAM to disk" ;
 
     setupadq.stream_ch &= 0x07;
 
-//    QFile Specfile("data_Spec.txt");
+
+    QFile Specfile("data_Spec.txt");
 
     if(setupadq.stream_ch == ADQ214_STREAM_ENABLED_BOTH)
     {
-//        QTextStream out(&Specfile);
+        QTextStream out(&Specfile);
 
         unsigned int samples_to_collect;
         samples_to_collect = setupadq.num_samples_collect;
@@ -705,32 +706,28 @@ void MainWindow::WriteSpecData2disk()                   // 配置采集卡
             delete psd_res;
         int psd_datanum = samples_to_collect/4;
         psd_res = new PSD_DATA[psd_datanum];
-//        psd_res[1].data64 = 65536;
-//        qDebug()<<"Union.p1 = "<<psd_res[1].pos[0];
-//        qDebug()<<"Union.p1 = "<<psd_res[1].pos[1];
 
         int i = 0, k = 0;
-
         for (k=0; (k<psd_datanum); k++,k++)
         {
-            psd_res[k].pos[0] = setupadq.data_stream_target[i];
-            psd_res[k].pos[1] = setupadq.data_stream_target[i+1];
-            psd_res[k].pos[2] = setupadq.data_stream_target[i+4];
-            psd_res[k].pos[3] = setupadq.data_stream_target[i+5];
-            psd_res[k+1].pos[0] = setupadq.data_stream_target[i+2];
-            psd_res[k+1].pos[1] = setupadq.data_stream_target[i+3];
-            psd_res[k+1].pos[2] = setupadq.data_stream_target[i+6];
-            psd_res[k+1].pos[3] = setupadq.data_stream_target[i+7];
+            psd_res[BitReverseIndex[k]].pos[0] = setupadq.data_stream_target[i];
+            psd_res[BitReverseIndex[k]].pos[1] = setupadq.data_stream_target[i+1];
+            psd_res[BitReverseIndex[k]].pos[2] = setupadq.data_stream_target[i+4];
+            psd_res[BitReverseIndex[k]].pos[3] = setupadq.data_stream_target[i+5];
+            psd_res[BitReverseIndex[k+1]].pos[0] = setupadq.data_stream_target[i+2];
+            psd_res[BitReverseIndex[k+1]].pos[1] = setupadq.data_stream_target[i+3];
+            psd_res[BitReverseIndex[k+1]].pos[2] = setupadq.data_stream_target[i+6];
+            psd_res[BitReverseIndex[k+1]].pos[3] = setupadq.data_stream_target[i+7];
+
             i = i + 8;
             qDebug()<<"Union.Spec["<<k<<"] = "<<psd_res[k].data64;
             qDebug()<<"Union.Spec["<<k+1<<"] = "<<psd_res[k+1].data64;
         }
 
-
-
-//        Specfile.close();
-
+        for (k=0; (k<psd_datanum); k++)
+            out <<psd_res[k].data64 << endl;
     }
+    Specfile.close();
 }
 
 void MainWindow::Display_Data()                   // 显示数据

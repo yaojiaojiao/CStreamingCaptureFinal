@@ -23,7 +23,8 @@ SOURCES += \
 HEADERS += \
         mainwindow.h \
         barchart.h \
-        linechart.h
+        linechart.h \
+    global_defines.h
 
 FORMS += \
         mainwindow.ui

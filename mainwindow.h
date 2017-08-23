@@ -11,34 +11,9 @@
 #include <stdio.h>
 #include <QDebug>
 #include "barchart.h"
-#include"linechart.h"
+#include "linechart.h"
+#include "global_defines.h"
 #include <QtWidgets/qlayout.h>
-typedef struct
-{
-    int apirev;
-    int trig_channel;                   //触发通道
-    int stream_ch;
-    int clock_source;                   //时钟源
-    int pll_divider;
-    int num_samples_collect;
-    int num_sample_skip;
-    int trig_mode;
-
-    unsigned int buffers_filled;
-    unsigned int collect_result;
-    int num_buffers;			         //Number of buffers
-    int size_buffers;			         //Size of each buffer
-    signed short* data_stream_target;
-
-    FILE* outfileA = NULL;
-    FILE* outfileB = NULL;
-}setupADQ;
-
-union PSD_DATA
-{
-    quint64 data64;
-    ushort  pos[4];
-};
 
 namespace Ui {
 class MainWindow;
