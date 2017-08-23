@@ -40,10 +40,11 @@ MainWindow::MainWindow(QWidget *parent) :
 
     onRadioChannels();
     onRadioTrigger();
+    update_Hex();
     on_lineEdit_BufferNum_returnPressed();
     on_lineEdit_BufferSize_returnPressed();
     on_methodBox_activated(1);
-
+    psd_res = nullptr;
 }
 
 void MainWindow::Create_statusbar()                   //创建状态栏
@@ -83,6 +84,8 @@ void MainWindow::connectADQDevice()
 MainWindow::~MainWindow()
 {
     delete ui;
+    if (psd_res != nullptr)
+        delete psd_res;
 }
 
 //默认buffers
@@ -312,6 +315,43 @@ void MainWindow::on_lineEdit_BufferSize_returnPressed()
     setupadq.size_buffers = ui->lineEdit_BufferSize->text().toInt();
 }
 
+void MainWindow::update_Hex()
+{
+    QString str;
+    str = ui->lineEdit_toFPGA_0->text();
+    str = QString::number(str.toInt(), 16).toUpper();
+    ui->lineEdit_toFPGA_0x->setText(str);
+
+    str = ui->lineEdit_toFPGA_1->text();
+    str = QString::number(str.toInt(), 16).toUpper();
+    ui->lineEdit_toFPGA_1x->setText(str);
+
+    str = ui->lineEdit_toFPGA_2->text();
+    str = QString::number(str.toInt(), 16).toUpper();
+    ui->lineEdit_toFPGA_2x->setText(str);
+
+    str = ui->lineEdit_toFPGA_3->text();
+    str = QString::number(str.toInt(), 16).toUpper();
+    ui->lineEdit_toFPGA_3x->setText(str);
+
+    str = ui->lineEdit_toFPGA_4->text();
+    str = QString::number(str.toInt(), 16).toUpper();
+    ui->lineEdit_toFPGA_4x->setText(str);
+
+    str = ui->lineEdit_toFPGA_5->text();
+    str = QString::number(str.toInt(), 16).toUpper();
+    ui->lineEdit_toFPGA_5x->setText(str);
+
+    str = ui->lineEdit_toFPGA_6->text();
+    str = QString::number(str.toInt(), 16).toUpper();
+    ui->lineEdit_toFPGA_6x->setText(str);
+
+    str = ui->lineEdit_toFPGA_7->text();
+    str = QString::number(str.toInt(), 16).toUpper();
+    ui->lineEdit_toFPGA_7x->setText(str);
+
+}
+
 void MainWindow::on_methodBox_activated(int index)
 {
     if(index == 1)
@@ -404,7 +444,8 @@ void MainWindow::on_pushButton_CaptureStart_clicked()
     if(!CaptureData2Buffer())
         return;
 
-    WriteData2disk();
+//    WriteData2disk();
+    WriteSpecData2disk();
     Display_Data();
 
     qDebug() << ("Collect finished!");
@@ -576,7 +617,7 @@ void MainWindow::WriteData2disk()                   // 配置采集卡
     setupadq.stream_ch &= 0x07;
     QFile fileA("dataA.txt");
     QFile fileB("dataB.txt");
-//    QFile fileBoth("dataBoth.txt");
+    //    QFile fileBoth("dataBoth.txt");
 
 
     switch(setupadq.stream_ch)
@@ -596,6 +637,7 @@ void MainWindow::WriteData2disk()                   // 配置采集卡
                 {
 
                     out << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                    qDebug()<<"CHA -- "<<setupadq.num_samples_collect-samples_to_collect;
                     samples_to_collect--;
                 }
 
@@ -603,6 +645,7 @@ void MainWindow::WriteData2disk()                   // 配置采集卡
                 {
 
                     out2 << setupadq.data_stream_target[setupadq.num_samples_collect-samples_to_collect] << endl;
+                    qDebug()<<"CHB -- "<<setupadq.num_samples_collect-samples_to_collect;
                     samples_to_collect--;
                 }
             }
@@ -639,6 +682,54 @@ void MainWindow::WriteData2disk()                   // 配置采集卡
     }
     default:
         break;
+    }
+}
+
+void MainWindow::WriteSpecData2disk()                   // 配置采集卡
+{
+    // Write to data to file after streaming to RAM, because ASCII output is too slow for realtime.
+    qDebug() << "Writing streamed Spectrum data in RAM to disk" ;
+
+    setupadq.stream_ch &= 0x07;
+
+//    QFile Specfile("data_Spec.txt");
+
+    if(setupadq.stream_ch == ADQ214_STREAM_ENABLED_BOTH)
+    {
+//        QTextStream out(&Specfile);
+
+        unsigned int samples_to_collect;
+        samples_to_collect = setupadq.num_samples_collect;
+
+        if (psd_res != nullptr)
+            delete psd_res;
+        int psd_datanum = samples_to_collect/4;
+        psd_res = new PSD_DATA[psd_datanum];
+//        psd_res[1].data64 = 65536;
+//        qDebug()<<"Union.p1 = "<<psd_res[1].pos[0];
+//        qDebug()<<"Union.p1 = "<<psd_res[1].pos[1];
+
+        int i = 0, k = 0;
+
+        for (k=0; (k<psd_datanum); k++,k++)
+        {
+            psd_res[k].pos[0] = setupadq.data_stream_target[i];
+            psd_res[k].pos[1] = setupadq.data_stream_target[i+1];
+            psd_res[k].pos[2] = setupadq.data_stream_target[i+4];
+            psd_res[k].pos[3] = setupadq.data_stream_target[i+5];
+            psd_res[k+1].pos[0] = setupadq.data_stream_target[i+2];
+            psd_res[k+1].pos[1] = setupadq.data_stream_target[i+3];
+            psd_res[k+1].pos[2] = setupadq.data_stream_target[i+6];
+            psd_res[k+1].pos[3] = setupadq.data_stream_target[i+7];
+            i = i + 8;
+            qDebug()<<"Union.Spec["<<k<<"] = "<<psd_res[k].data64;
+            qDebug()<<"Union.Spec["<<k+1<<"] = "<<psd_res[k+1].data64;
+        }
+
+
+
+//        Specfile.close();
+
     }
 }
 

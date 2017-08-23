@@ -6,7 +6,7 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1043</width>
+    <width>1139</width>
     <height>692</height>
    </rect>
   </property>
@@ -340,7 +340,7 @@
      <rect>
       <x>30</x>
       <y>260</y>
-      <width>271</width>
+      <width>411</width>
       <height>351</height>
      </rect>
     </property>
@@ -358,7 +358,7 @@
       <rect>
        <x>20</x>
        <y>40</y>
-       <width>231</width>
+       <width>371</width>
        <height>295</height>
       </rect>
      </property>
@@ -386,6 +386,18 @@
          <widget class="QLineEdit" name="lineEdit_toFPGA_0">
           <property name="enabled">
            <bool>true</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="font">
            <font>
@@ -417,6 +429,18 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
@@ -427,6 +451,28 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_14">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>命令</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -451,13 +497,25 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
            </font>
           </property>
           <property name="text">
-           <string>0</string>
+           <string>500</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -481,6 +539,18 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
@@ -491,6 +561,28 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_37">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>触发电平</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -515,13 +607,25 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
            </font>
           </property>
           <property name="text">
-           <string>0</string>
+           <string>5000</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -545,6 +649,18 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
@@ -555,6 +671,28 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_36">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>累加脉冲数</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -579,13 +717,25 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
            </font>
           </property>
           <property name="text">
-           <string>0</string>
+           <string>250</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -609,6 +759,18 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
@@ -619,6 +781,28 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_35">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>距离门内点数</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -643,13 +827,25 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
            </font>
           </property>
           <property name="text">
-           <string>0</string>
+           <string>16</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -673,6 +869,18 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
@@ -683,6 +891,28 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_39">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>距离门数</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -706,6 +936,18 @@
          <widget class="QLineEdit" name="lineEdit_toFPGA_5">
           <property name="enabled">
            <bool>true</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="font">
            <font>
@@ -737,6 +979,18 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
@@ -744,6 +998,28 @@
           </property>
           <property name="text">
            <string>0</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_40">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string/>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -770,6 +1046,18 @@
          <widget class="QLineEdit" name="lineEdit_toFPGA_6">
           <property name="enabled">
            <bool>true</bool>
+          </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>0</height>
+           </size>
           </property>
           <property name="font">
            <font>
@@ -801,6 +1089,18 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
@@ -808,6 +1108,28 @@
           </property>
           <property name="text">
            <string>0</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_33">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string/>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -835,13 +1157,25 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="Minimum" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
            </font>
           </property>
           <property name="text">
-           <string>0</string>
+           <string>4000</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -865,6 +1199,18 @@
           <property name="enabled">
            <bool>true</bool>
           </property>
+          <property name="sizePolicy">
+           <sizepolicy hsizetype="MinimumExpanding" vsizetype="Fixed">
+            <horstretch>0</horstretch>
+            <verstretch>0</verstretch>
+           </sizepolicy>
+          </property>
+          <property name="minimumSize">
+           <size>
+            <width>40</width>
+            <height>0</height>
+           </size>
+          </property>
           <property name="font">
            <font>
             <family>微软雅黑</family>
@@ -875,6 +1221,28 @@
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="label_38">
+          <property name="minimumSize">
+           <size>
+            <width>100</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="font">
+           <font>
+            <family>Microsoft YaHei</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="text">
+           <string>处理总点数</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -1347,9 +1715,9 @@
    <widget class="QComboBox" name="methodBox">
     <property name="geometry">
      <rect>
-      <x>710</x>
-      <y>200</y>
-      <width>69</width>
+      <x>1040</x>
+      <y>40</y>
+      <width>81</width>
       <height>31</height>
      </rect>
     </property>
@@ -1373,9 +1741,9 @@
    <widget class="QPushButton" name="pushButton">
     <property name="geometry">
      <rect>
-      <x>810</x>
-      <y>200</y>
-      <width>75</width>
+      <x>1040</x>
+      <y>90</y>
+      <width>81</width>
       <height>31</height>
      </rect>
     </property>
@@ -1392,14 +1760,20 @@
    <widget class="QTabWidget" name="tabWidget">
     <property name="geometry">
      <rect>
-      <x>330</x>
+      <x>470</x>
       <y>270</y>
-      <width>681</width>
-      <height>329</height>
+      <width>641</width>
+      <height>341</height>
      </rect>
     </property>
+    <property name="font">
+     <font>
+      <family>Microsoft YaHei</family>
+      <pointsize>10</pointsize>
+     </font>
+    </property>
     <property name="currentIndex">
-     <number>0</number>
+     <number>1</number>
     </property>
     <widget class="QWidget" name="CHA">
      <attribute name="title">
@@ -1410,7 +1784,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>651</width>
+        <width>631</width>
         <height>311</height>
        </rect>
       </property>
@@ -1426,7 +1800,7 @@
        <rect>
         <x>0</x>
         <y>0</y>
-        <width>651</width>
+        <width>631</width>
         <height>311</height>
        </rect>
       </property>
@@ -1440,7 +1814,7 @@
     <rect>
      <x>0</x>
      <y>0</y>
-     <width>1043</width>
+     <width>1139</width>
      <height>21</height>
     </rect>
    </property>

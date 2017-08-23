@@ -1,4 +1,4 @@
-#ifndef MAINWINDOW_H
+﻿#ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
 #include <QMainWindow>
@@ -57,6 +57,7 @@ public:
 public slots:
         void onRadioChannels();
         void onRadioTrigger();
+        void update_Hex();
 
 private slots:
 
@@ -119,6 +120,7 @@ private slots:
     bool Config_ADQ214();           // 配置采集卡
     bool CaptureData2Buffer();      // 采集数据到缓存
     void WriteData2disk();          // 写入采集数据到文件
+    void WriteSpecData2disk();          // 写入采集数据到文件
     void Display_Data();            // 显示数据曲线
 
 private:
