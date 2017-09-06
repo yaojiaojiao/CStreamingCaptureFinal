@@ -17,12 +17,10 @@ DEFINES += QT_DEPRECATED_WARNINGS
 SOURCES += \
         main.cpp \
         mainwindow.cpp \
-        barchart.cpp \
         linechart.cpp
 
 HEADERS += \
         mainwindow.h \
-        barchart.h \
         linechart.h \
     global_defines.h
 

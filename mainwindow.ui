@@ -1319,7 +1319,7 @@
              <string>默认</string>
             </property>
             <property name="checked">
-             <bool>true</bool>
+             <bool>false</bool>
             </property>
             <property name="autoExclusive">
              <bool>true</bool>
@@ -1330,6 +1330,9 @@
            <widget class="QRadioButton" name="radioButton_customize">
             <property name="text">
              <string>自定义</string>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
             </property>
            </widget>
           </item>
@@ -1374,7 +1377,7 @@
            </font>
           </property>
           <property name="text">
-           <string>8</string>
+           <string>256</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -1712,33 +1715,7 @@
      </layout>
     </widget>
    </widget>
-   <widget class="QComboBox" name="methodBox">
-    <property name="geometry">
-     <rect>
-      <x>1040</x>
-      <y>40</y>
-      <width>81</width>
-      <height>31</height>
-     </rect>
-    </property>
-    <property name="font">
-     <font>
-      <family>微软雅黑</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <item>
-     <property name="text">
-      <string>折线图</string>
-     </property>
-    </item>
-    <item>
-     <property name="text">
-      <string>条形图</string>
-     </property>
-    </item>
-   </widget>
-   <widget class="QPushButton" name="pushButton">
+   <widget class="QPushButton" name="pushButton_Magnify">
     <property name="geometry">
      <rect>
       <x>1040</x>
@@ -1825,6 +1802,9 @@
     </property>
     <property name="text">
      <string>输出Start信号</string>
+    </property>
+    <property name="checked">
+     <bool>true</bool>
     </property>
    </widget>
   </widget>

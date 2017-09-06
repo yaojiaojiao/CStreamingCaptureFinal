@@ -22,7 +22,8 @@ MainWindow::MainWindow(QWidget *parent) :
     setupadq.num_sample_skip = 128;        //设为128，省去sample_decimation
 
     ButtonClassify();                      //Group里RadioButton分类
-    on_radioButton_default_clicked();
+    //    on_radioButton_default_clicked();
+    on_radioButton_customize_clicked();
     Create_statusbar();
 
     num_of_devices = 0;
@@ -42,9 +43,10 @@ MainWindow::MainWindow(QWidget *parent) :
     onRadioChannels();
     onRadioTrigger();
     update_Hex();
-    on_lineEdit_BufferNum_returnPressed();
-    on_lineEdit_BufferSize_returnPressed();
-    on_methodBox_activated(1);
+    setupadq.num_buffers = 256;
+    setupadq.size_buffers = 1024;
+    ui->lineEdit_BufferNum->setText(QString::number(setupadq.num_buffers));
+    ui->lineEdit_BufferSize->setText(QString::number(setupadq.size_buffers/512));
     psd_res = nullptr;
 }
 
@@ -92,19 +94,18 @@ MainWindow::~MainWindow()
 //默认buffers
 void MainWindow::on_radioButton_default_clicked()
 {
-    setupadq.num_buffers = 8;
-    setupadq.size_buffers = 1024;
-    ui->lineEdit_BufferNum->setText(QString::number(setupadq.num_buffers));
-    ui->lineEdit_BufferSize->setText(QString::number(setupadq.size_buffers/512));
+    ui->lineEdit_BufferNum->setEnabled(false);
+    ui->lineEdit_BufferSize->setEnabled(false);
 }
 
 //自定义buffers
 void MainWindow::on_radioButton_customize_clicked()
 {
-    setupadq.num_buffers = ui->lineEdit_BufferNum->text().toInt();
-    setupadq.size_buffers = ui->lineEdit_BufferSize->text().toInt()*512;
+    ui->lineEdit_BufferNum->setEnabled(true);
+    ui->lineEdit_BufferSize->setEnabled(true);
+    ui->lineEdit_BufferNum->setText(QString::number(setupadq.num_buffers));
+    ui->lineEdit_BufferSize->setText(QString::number(setupadq.size_buffers/512));
 }
-
 
 //进制自动转换
 void MainWindow::on_lineEdit_toFPGA_0_textChanged(const QString &arg0)             //30
@@ -147,6 +148,9 @@ void MainWindow::on_lineEdit_toFPGA_3_textChanged(const QString &arg3)          
 {
     QString lineEdit_toFPGA3x = QString::number(arg3.toInt(), 16).toUpper();
     ui->lineEdit_toFPGA_3x->setText(lineEdit_toFPGA3x);
+    int nPoints = arg3.toInt();
+    int nBins = ui->lineEdit_toFPGA_4->text().toInt();
+    ui->lineEdit_toFPGA_7->setText(QString::number(nPoints*nBins));
 }
 
 void MainWindow::on_lineEdit_toFPGA_3x_textChanged(const QString &arg3x)
@@ -159,6 +163,9 @@ void MainWindow::on_lineEdit_toFPGA_4_textChanged(const QString &arg4)          
 {
     QString lineEdit_toFPGA4x = QString::number(arg4.toInt(), 16).toUpper();
     ui->lineEdit_toFPGA_4x->setText(lineEdit_toFPGA4x);
+    int nBins = arg4.toInt();
+    int nPoints = ui->lineEdit_toFPGA_3->text().toInt();
+    ui->lineEdit_toFPGA_7->setText(QString::number(nPoints*nBins));
 }
 
 void MainWindow::on_lineEdit_toFPGA_4x_textChanged(const QString &arg4x)
@@ -195,6 +202,15 @@ void MainWindow::on_lineEdit_toFPGA_7_textChanged(const QString &arg7)          
 {
     QString lineEdit_toFPGA7x = QString::number(arg7.toInt(), 16).toUpper();
     ui->lineEdit_toFPGA_7x->setText(lineEdit_toFPGA7x);
+
+    int nPoints = ui->lineEdit_toFPGA_3->text().toInt();
+    int nBins = ui->lineEdit_toFPGA_4->text().toInt();
+    int nTotalPoints =arg7.toInt();
+    if (nPoints*nBins != nTotalPoints)
+        ui->lineEdit_toFPGA_7->setStyleSheet("color: red;");
+    else
+        ui->lineEdit_toFPGA_7->setStyleSheet("color: black;");
+
 }
 
 void MainWindow::on_lineEdit_toFPGA_7x_textChanged(const QString &arg7x)
@@ -277,7 +293,6 @@ void MainWindow::on_pushButton_output_clicked()
 //Group内RadioButton分组互斥分配ID
 void MainWindow::ButtonClassify()
 {
-
     ButtonChannel = new QButtonGroup(this);
     ButtonChannel->addButton(ui->radioButton_channelA, 0);
     ButtonChannel->addButton(ui->radioButton_channelB, 1);
@@ -306,14 +321,14 @@ void MainWindow::onRadioTrigger()
     setupadq.trig_mode = ButtonTrigger->checkedId();
 }
 
-void MainWindow::on_lineEdit_BufferNum_returnPressed()
+void MainWindow::on_lineEdit_BufferNum_textChanged(const QString &arg1)
 {
-    setupadq.num_buffers = ui->lineEdit_BufferNum->text().toInt();
+    setupadq.num_buffers = arg1.toInt();
 }
 
-void MainWindow::on_lineEdit_BufferSize_returnPressed()
+void MainWindow::on_lineEdit_BufferSize_textChanged(const QString &arg1)
 {
-    setupadq.size_buffers = ui->lineEdit_BufferSize->text().toInt();
+    setupadq.size_buffers = arg1.toInt();
 }
 
 void MainWindow::update_Hex()
@@ -353,20 +368,7 @@ void MainWindow::update_Hex()
 
 }
 
-void MainWindow::on_methodBox_activated(int index)
-{
-    if(index == 1)
-    {
-        method = true;
-    }
-    else
-    {
-        method = false;
-    }
-
-}
-
-void MainWindow::on_pushButton_clicked() //放大按钮
+void MainWindow::on_pushButton_Magnify_clicked() //放大按钮
 {
     if(!drawLayoutCHB->isEmpty())  //图像放大
     {
@@ -432,21 +434,20 @@ void MainWindow::Clear_Dispaly()                   // 清除数据绘图显示
 //开始采集
 void MainWindow::on_pushButton_CaptureStart_clicked()
 {
-
     if(!Config_ADQ214())
         return;
     Clear_Dispaly();
 
     setupadq.num_samples_collect = ui->lineEdit_SampTotNum->text().toInt();  //设置采样点数
     setupadq.data_stream_target = new qint16[setupadq.num_samples_collect];
-    memset(setupadq.data_stream_target, 0, setupadq.num_samples_collect);
+    memset(setupadq.data_stream_target, 0, setupadq.num_samples_collect* sizeof(signed short));
 
     if(!CaptureData2Buffer())
         return;
 
     WriteData2disk();
-    WriteSpecData2disk();
-    //    Display_Data();
+    //    WriteSpecData2disk();
+    Display_Data();
 
     qDebug() << ("Collect finished!");
     delete setupadq.data_stream_target;
@@ -462,7 +463,7 @@ bool MainWindow::Config_ADQ214()                   // 配置采集卡
     success = false;
     if (!isADQ214Connected)
     {
-        QMessageBox::critical(this, QString::fromStdString("采集卡未连接！！"), QString::fromStdString("采集卡未连接"));
+        QMessageBox::critical(this, QString::fromLocal8Bit("采集卡未连接！！"), QString::fromLocal8Bit("采集卡未连接"));
     }
     else
     {
@@ -559,13 +560,13 @@ bool MainWindow::CaptureData2Buffer()                   // 采集数据到缓存
         {
             ADQ214_SWTrig(adq_cu, adq_num);
         }
-        else if (setupadq.trig_mode == 0)	//If trigger mode is 无触发
+
+        if(ui->checkBox_0x30->isChecked())
         {
-            if(ui->checkBox_0x30->isChecked())
-            {
-                ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFFFE);   // bit[0]置0
-                ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0001);   // bit[0]置1
-            }
+            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFF7F);   // bit[7]置0
+            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0080);   // bit[7]置1
+            //                ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFFFE);   // bit[0]置0
+            //                ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0001);   // bit[0]置1
         }
 
         do
@@ -755,20 +756,11 @@ void MainWindow::Display_Data()                   // 显示数据
             }
         }
 
-        if(!method)
-        {
-            lineChart.line(rowCHA,(setupadq.num_samples_collect)/2);  //数组传给linechart
-            drawLayoutCHA->addWidget(lineChart.chartView);
-            lineChart.line(rowCHB,(setupadq.num_samples_collect)/2);
-            drawLayoutCHB->addWidget(lineChart.chartView);
-        }
-        else
-        {
-            barChart.chart(rowCHA,(setupadq.num_samples_collect)/2);  //数组传给linechart
-            drawLayoutCHA->addWidget(barChart.chartView);
-            barChart.chart(rowCHB,(setupadq.num_samples_collect)/2);  //数组传给linechart
-            drawLayoutCHB->addWidget(barChart.chartView);
-        }
+        lineChart.line(rowCHA,(setupadq.num_samples_collect)/2);  //数组传给linechart
+        drawLayoutCHA->addWidget(lineChart.chartView);
+        lineChart.line(rowCHB,(setupadq.num_samples_collect)/2);
+        drawLayoutCHB->addWidget(lineChart.chartView);
+
         break;
     }
     case ADQ214_STREAM_ENABLED_A:
@@ -779,18 +771,12 @@ void MainWindow::Display_Data()                   // 显示数据
         {
             rowCHA[i] = setupadq.data_stream_target[i];
         }
-        if(!method)
-        {
-            lineChart.line(rowCHA,setupadq.num_samples_collect);  //数组传给linechart
-            drawLayoutCHA->addWidget(lineChart.chartView);
-            // b.chartView->setWindowFlags(Qt::Window|Qt::WindowMinimizeButtonHint
-            //               |Qt::WindowMaximizeButtonHint|Qt::WindowCloseButtonHint);
-        }
-        else
-        {
-            barChart.chart(rowCHA,setupadq.num_samples_collect);  //数组传给barChart
-            drawLayoutCHA->addWidget(barChart.chartView);
-        }
+
+        lineChart.line(rowCHA,setupadq.num_samples_collect);  //数组传给linechart
+        drawLayoutCHA->addWidget(lineChart.chartView);
+        // b.chartView->setWindowFlags(Qt::Window|Qt::WindowMinimizeButtonHint
+        //               |Qt::WindowMaximizeButtonHint|Qt::WindowCloseButtonHint);
+
         break;
     }
     case ADQ214_STREAM_ENABLED_B:
@@ -801,19 +787,15 @@ void MainWindow::Display_Data()                   // 显示数据
         {
             rowCHB[i] = setupadq.data_stream_target[i];
         }
-        if(!method)
-        {
-            lineChart.line(rowCHB,setupadq.num_samples_collect);  //数组传给linechart
-            drawLayoutCHB->addWidget(lineChart.chartView);
-        }
-        else
-        {
-            barChart.chart(rowCHB,setupadq.num_samples_collect);  //数组传给barChartchart
-            drawLayoutCHB->addWidget(barChart.chartView);
-        }
+
+        lineChart.line(rowCHB,setupadq.num_samples_collect);  //数组传给linechart
+        drawLayoutCHB->addWidget(lineChart.chartView);
+
         break;
     }
     default:
         break;
     }
 }
+
+

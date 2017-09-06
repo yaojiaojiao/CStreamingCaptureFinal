@@ -80,23 +80,19 @@ private slots:
 
     void on_pushButton_CaptureStart_clicked();
 
-    void on_lineEdit_BufferNum_returnPressed();
-
-    void on_lineEdit_BufferSize_returnPressed();
-
-	//    void on_testButton_clicked();
-	
-    void on_methodBox_activated(int index);
-
-    void on_pushButton_clicked();
+    void on_pushButton_Magnify_clicked();
 
     void Clear_Dispaly();           // 清除数据绘图显示
 
     bool Config_ADQ214();           // 配置采集卡
     bool CaptureData2Buffer();      // 采集数据到缓存
     void WriteData2disk();          // 写入采集数据到文件
-    void WriteSpecData2disk();          // 写入采集数据到文件
+    void WriteSpecData2disk();      // 写入采集数据到文件
     void Display_Data();            // 显示数据曲线
+
+    void on_lineEdit_BufferNum_textChanged(const QString &arg1);
+
+    void on_lineEdit_BufferSize_textChanged(const QString &arg1);
 
 private:
 
@@ -137,9 +133,7 @@ private:
 
     setupADQ setupadq;
 
-    barchart barChart;
     linechart lineChart;
-    bool method; //用于判断折线/柱状图
     QVBoxLayout *drawLayoutCHA,*drawLayoutCHB;
     QVector<float> rowCHA, rowCHB;  //新建动态数组
     QWidget *CHA, *CHB;  //用于管理图像的放大与取消
