@@ -10,7 +10,6 @@
 #include <QFile>
 #include <stdio.h>
 #include <QDebug>
-#include "barchart.h"
 #include "linechart.h"
 #include "global_defines.h"
 #include <QtWidgets/qlayout.h>

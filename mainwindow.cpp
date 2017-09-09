@@ -37,6 +37,7 @@ MainWindow::MainWindow(QWidget *parent) :
     qDebug() << IS_VALID_DLL_REVISION(setupadq.apirev);
     qDebug() << "ADQAPI Example";
     qDebug() << "API Revision:" << setupadq.apirev;
+
     drawLayoutCHA=ui->verticalLayout_CHA;
     drawLayoutCHB=ui->verticalLayout_CHB;
 
@@ -86,6 +87,7 @@ void MainWindow::connectADQDevice()
 
 MainWindow::~MainWindow()
 {
+    DeleteADQControlUnit(adq_cu);
     delete ui;
     if (psd_res != nullptr)
         delete psd_res;
@@ -328,7 +330,7 @@ void MainWindow::on_lineEdit_BufferNum_textChanged(const QString &arg1)
 
 void MainWindow::on_lineEdit_BufferSize_textChanged(const QString &arg1)
 {
-    setupadq.size_buffers = arg1.toInt();
+    setupadq.size_buffers = arg1.toInt()*512;
 }
 
 void MainWindow::update_Hex()
@@ -436,6 +438,7 @@ void MainWindow::on_pushButton_CaptureStart_clicked()
 {
     if(!Config_ADQ214())
         return;
+
     Clear_Dispaly();
 
     setupadq.num_samples_collect = ui->lineEdit_SampTotNum->text().toInt();  //设置采样点数
@@ -446,7 +449,7 @@ void MainWindow::on_pushButton_CaptureStart_clicked()
         return;
 
     WriteData2disk();
-    //    WriteSpecData2disk();
+    WriteSpecData2disk();
     Display_Data();
 
     qDebug() << ("Collect finished!");
@@ -463,11 +466,12 @@ bool MainWindow::Config_ADQ214()                   // 配置采集卡
     success = false;
     if (!isADQ214Connected)
     {
+        // 应添加自动连接的功能
         QMessageBox::critical(this, QString::fromLocal8Bit("采集卡未连接！！"), QString::fromLocal8Bit("采集卡未连接"));
     }
     else
     {
-        ADQ214_SetDataFormat(adq_cu, adq_num,ADQ214_DATA_FORMAT_UNPACKED_14BIT);
+        ADQ214_SetDataFormat(adq_cu, adq_num, ADQ214_DATA_FORMAT_UNPACKED_16BIT);
         // 设置TransferBuffer大小及数量
 
         if(ui->radioButton_customize->isChecked())
@@ -510,20 +514,20 @@ bool MainWindow::Config_ADQ214()                   // 配置采集卡
         {
         case 0:
             setupadq.stream_ch &= 0x7;
-            qDebug() << "no";
+            qDebug() << "no_trigger";
             break;
         case 1:
         {
             ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
             setupadq.stream_ch |= 0x8;
-            qDebug() << "soft";
+            qDebug() << "soft_trigger";
         }
             break;
         case 2:
         {
             ADQ_SetTriggerMode(adq_cu, adq_num,setupadq.trig_mode);
             setupadq.stream_ch |= 0x8;
-            qDebug() << "exter";
+            qDebug() << "ext_trigger";
         }
             break;
         }
@@ -563,10 +567,10 @@ bool MainWindow::CaptureData2Buffer()                   // 采集数据到缓存
 
         if(ui->checkBox_0x30->isChecked())
         {
-            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFF7F);   // bit[7]置0
-            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0080);   // bit[7]置1
-            //                ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFFFE);   // bit[0]置0
-            //                ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0001);   // bit[0]置1
+//            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFF7F);   // bit[7]置0
+//            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0080);   // bit[7]置1
+            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFFFE);   // bit[0]置0
+            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0001);   // bit[0]置1
         }
 
         do
@@ -576,6 +580,7 @@ bool MainWindow::CaptureData2Buffer()                   // 采集数据到缓存
         } while ((setupadq.buffers_filled == 0) && (setupadq.collect_result));
 
         setupadq.collect_result = ADQ214_CollectDataNextPage(adq_cu, adq_num);
+        qDebug() << "setupadq.collect_result = " << setupadq.collect_result;
 
         int samples_in_buffer = qMin(ADQ214_GetSamplesPerPage(adq_cu, adq_num), samples_to_collect);
         qDebug() << "samples_in_buffer = " << samples_in_buffer;
