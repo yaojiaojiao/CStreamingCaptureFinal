@@ -1,5 +1,4 @@
 #include "linechart.h"
-#include "barchart.h"
 
 linechart::linechart(QObject *parent) : QObject(parent)
 {
@@ -8,42 +7,42 @@ linechart::linechart(QObject *parent) : QObject(parent)
 void linechart::line(QVector<float> vectorA, int clectNumber)
 {
 
- QLineSeries *series = new QLineSeries();     //æ–°å»ºæŠ˜çº¿å›¾ç±»
+    QLineSeries *series = new QLineSeries();     //ĞÂ½¨ÕÛÏßÍ¼Àà
 
- for(int i=0;i<clectNumber;)               //åŠ å…¥å¡«å……ç‚¹
-         {
-            *series << QPointF(i+1, vectorA[i]);
-             i++;
-          }
+    for(int i=0;i<clectNumber;)               //¼ÓÈëÌî³äµã
+    {
+        *series << QPointF(i+1, vectorA[i]);
+        i++;
+    }
 
- QChart *chart = new QChart();
- chart->legend()->hide();
- chart->addSeries(series);
-//series->setUseOpenGL(true);//åŠ é€Ÿï¼Ÿ
- chart->createDefaultAxes();    //å…ˆåˆ›å»ºé»˜è®¤åæ ‡è½´
+    QChart *chart = new QChart();
+    chart->legend()->hide();
+    chart->addSeries(series);
+    //series->setUseOpenGL(true);//¼ÓËÙ£¿
+    chart->createDefaultAxes();    //ÏÈ´´½¨Ä¬ÈÏ×ø±êÖá
 
- QValueAxis *axisX= new QValueAxis;
+    QValueAxis *axisX= new QValueAxis;
 
-//  axisX->setTickCount(series->count());// setTickCountå¯¼è‡´å¡é¡¿
- axisX->setMinorTickCount(10);
-  axisX->setLabelFormat("%.i");
-  axisX->applyNiceNumbers();
-  axisX->setTitleText("ç‚¹æ•°");
-  axisX->setTickCount(10);
-  chart->setAxisX(axisX, series);
-  chart->setTitle("Line Chart");
+    //  axisX->setTickCount(series->count());// setTickCountµ¼ÖÂ¿¨¶Ù
+    axisX->setMinorTickCount(10);
+    axisX->setLabelFormat("%.i");
+    axisX->applyNiceNumbers();
+    axisX->setTitleText("µãÊı");
+    axisX->setTickCount(10);
+    chart->setAxisX(axisX, series);
+    chart->setTitle("Line Chart");
 
- QValueAxis *axisY= new QValueAxis;
- axisY->setMinorTickCount(10);
-   axisY->setLabelFormat("%.1f");
-  chart->setAxisY(axisY, series);
-  axisY->applyNiceNumbers();
-  axisY->setTitleText(tr("ä¿¡å·"));
-  chart->setAnimationOptions(QChart::NoAnimation);  //åŠ¨ç”»é€‰é¡¹
+    QValueAxis *axisY= new QValueAxis;
+    axisY->setMinorTickCount(10);
+    axisY->setLabelFormat("%.1f");
+    chart->setAxisY(axisY, series);
+    axisY->applyNiceNumbers();
+    axisY->setTitleText(tr("ĞÅºÅ"));
+    chart->setAnimationOptions(QChart::NoAnimation);  //¶¯»­Ñ¡Ïî
 
- chartView = new QChartView(chart);
- chartView->setRenderHint(QPainter::Antialiasing);
- chartView->setRubberBand(QChartView::RectangleRubberBand);  //çŸ©å½¢æ¡† æ”¾å¤§ã€ç¼©å°
+    chartView = new QChartView(chart);
+    chartView->setRenderHint(QPainter::Antialiasing);
+    chartView->setRubberBand(QChartView::RectangleRubberBand);  //¾ØĞÎ¿ò ·Å´ó¡¢ËõĞ¡
 
 }
 
