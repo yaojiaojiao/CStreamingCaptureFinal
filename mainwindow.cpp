@@ -127,6 +127,7 @@ void MainWindow::on_lineEdit_toFPGA_1_textChanged(const QString &arg1)          
 {
     QString lineEdit_toFPGA1x = QString::number(arg1.toInt(), 16).toUpper();
     ui->lineEdit_toFPGA_1x->setText(lineEdit_toFPGA1x);
+    ui->lineEdit_LevelDisp->setText(QString::number(arg1.toDouble()*1100/8192));
 }
 
 void MainWindow::on_lineEdit_toFPGA_1x_textChanged(const QString &arg1x)
