@@ -845,7 +845,7 @@
            </font>
           </property>
           <property name="text">
-           <string>16</string>
+           <string>14</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -1703,7 +1703,7 @@
            </font>
           </property>
           <property name="text">
-           <string>2048</string>
+           <string>26624</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -1785,7 +1785,7 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QCheckBox" name="checkBox_0x30">
+   <widget class="QCheckBox" name="checkBox_Order">
     <property name="geometry">
      <rect>
       <x>710</x>
@@ -1801,10 +1801,10 @@
      </font>
     </property>
     <property name="text">
-     <string>输出Start信号</string>
+     <string>比特反转</string>
     </property>
     <property name="checked">
-     <bool>true</bool>
+     <bool>false</bool>
     </property>
    </widget>
   </widget>

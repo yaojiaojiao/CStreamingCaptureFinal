@@ -48,6 +48,7 @@ MainWindow::MainWindow(QWidget *parent) :
     setupadq.size_buffers = 1024;
     ui->lineEdit_BufferNum->setText(QString::number(setupadq.num_buffers));
     ui->lineEdit_BufferSize->setText(QString::number(setupadq.size_buffers/512));
+
     psd_res = nullptr;
 }
 
@@ -153,6 +154,7 @@ void MainWindow::on_lineEdit_toFPGA_3_textChanged(const QString &arg3)          
     int nPoints = arg3.toInt();
     int nBins = ui->lineEdit_toFPGA_4->text().toInt();
     ui->lineEdit_toFPGA_7->setText(QString::number(nPoints*nBins));
+//    ui->lineEdit_SampTotNum->setText(QString::number(nPoints*(nBins-1)*4));
 }
 
 void MainWindow::on_lineEdit_toFPGA_3x_textChanged(const QString &arg3x)
@@ -168,6 +170,7 @@ void MainWindow::on_lineEdit_toFPGA_4_textChanged(const QString &arg4)          
     int nBins = arg4.toInt();
     int nPoints = ui->lineEdit_toFPGA_3->text().toInt();
     ui->lineEdit_toFPGA_7->setText(QString::number(nPoints*nBins));
+    ui->lineEdit_SampTotNum->setText(QString::number(512*(nBins-1)*4));
 }
 
 void MainWindow::on_lineEdit_toFPGA_4x_textChanged(const QString &arg4x)
@@ -565,13 +568,10 @@ bool MainWindow::CaptureData2Buffer()                   // 采集数据到缓存
             ADQ214_SWTrig(adq_cu, adq_num);
         }
 
-        if(ui->checkBox_0x30->isChecked())
-        {
-//            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFF7F);   // bit[7]置0
-//            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0080);   // bit[7]置1
-            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFFFE);   // bit[0]置0
-            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0001);   // bit[0]置1
-        }
+        //            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFF7F);   // bit[7]置0
+        //            ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0080);   // bit[7]置1
+        ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0&0xFFFE);   // bit[0]置0
+        ADQ214_WriteAlgoRegister(adq_cu,1,0x30,0,write_data0|0x0001);   // bit[0]置1
 
         do
         {
@@ -707,14 +707,28 @@ void MainWindow::WriteSpecData2disk()                   // 将数据转换成功
         for (l=0;l<nLoops;l++)
             for (k=0,i=0; (k<512); k++,k++)
             {
-                psd_res[512*l + BitReverseIndex[k]].pos[3] = setupadq.data_stream_target[2048*l + i];
-                psd_res[512*l + BitReverseIndex[k]].pos[2] = setupadq.data_stream_target[2048*l + i+1];
-                psd_res[512*l + BitReverseIndex[k]].pos[1] = setupadq.data_stream_target[2048*l + i+4];
-                psd_res[512*l + BitReverseIndex[k]].pos[0] = setupadq.data_stream_target[2048*l + i+5];
-                psd_res[512*l + BitReverseIndex[k+1]].pos[3] = setupadq.data_stream_target[2048*l + i+2];
-                psd_res[512*l + BitReverseIndex[k+1]].pos[2] = setupadq.data_stream_target[2048*l + i+3];
-                psd_res[512*l + BitReverseIndex[k+1]].pos[1] = setupadq.data_stream_target[2048*l + i+6];
-                psd_res[512*l + BitReverseIndex[k+1]].pos[0] = setupadq.data_stream_target[2048*l + i+7];
+                if(ui->checkBox_Order->isChecked())
+                {
+                    psd_res[512*l + BitReverseIndex[k]].pos[3] = setupadq.data_stream_target[2048*l + i];
+                    psd_res[512*l + BitReverseIndex[k]].pos[2] = setupadq.data_stream_target[2048*l + i+1];
+                    psd_res[512*l + BitReverseIndex[k]].pos[1] = setupadq.data_stream_target[2048*l + i+4];
+                    psd_res[512*l + BitReverseIndex[k]].pos[0] = setupadq.data_stream_target[2048*l + i+5];
+                    psd_res[512*l + BitReverseIndex[k+1]].pos[3] = setupadq.data_stream_target[2048*l + i+2];
+                    psd_res[512*l + BitReverseIndex[k+1]].pos[2] = setupadq.data_stream_target[2048*l + i+3];
+                    psd_res[512*l + BitReverseIndex[k+1]].pos[1] = setupadq.data_stream_target[2048*l + i+6];
+                    psd_res[512*l + BitReverseIndex[k+1]].pos[0] = setupadq.data_stream_target[2048*l + i+7];
+                }
+                else
+                {
+                    psd_res[512*l + k].pos[3] = setupadq.data_stream_target[2048*l + i];
+                    psd_res[512*l + k].pos[2] = setupadq.data_stream_target[2048*l + i+1];
+                    psd_res[512*l + k].pos[1] = setupadq.data_stream_target[2048*l + i+4];
+                    psd_res[512*l + k].pos[0] = setupadq.data_stream_target[2048*l + i+5];
+                    psd_res[512*l + k+1].pos[3] = setupadq.data_stream_target[2048*l + i+2];
+                    psd_res[512*l + k+1].pos[2] = setupadq.data_stream_target[2048*l + i+3];
+                    psd_res[512*l + k+1].pos[1] = setupadq.data_stream_target[2048*l + i+6];
+                    psd_res[512*l + k+1].pos[0] = setupadq.data_stream_target[2048*l + i+7];
+                }
 
                 i = i + 8;
                 qDebug()<<"Union.Spec["<<BitReverseIndex[k]<<"] = "<<psd_res[512*l + BitReverseIndex[k]].data64;
