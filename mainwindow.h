@@ -89,6 +89,11 @@ private slots:
     void WriteSpecData2disk();      // 写入采集数据到文件
     void Display_Data();            // 显示数据曲线
 
+    void ConvertPSDUnionToArray(PSD_DATA *psd_res);
+    void LOSVelocityCal(const int heightNum, const int specNum,
+                        const int objSpecPoints, const double lambda,
+                        const double *freqAxis, const double *specData);
+
     void on_lineEdit_BufferNum_textChanged(const QString &arg1);
 
     void on_lineEdit_BufferSize_textChanged(const QString &arg1);
@@ -137,6 +142,8 @@ private:
     QVector<float> rowCHA, rowCHB;  //新建动态数组
     QWidget *CHA, *CHB;  //用于管理图像的放大与取消
     PSD_DATA *psd_res;
+    double *psd_array;
+    double *losVelocity;
 };
 
 #endif // MAINWINDOW_H

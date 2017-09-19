@@ -92,6 +92,8 @@ MainWindow::~MainWindow()
     delete ui;
     if (psd_res != nullptr)
         delete psd_res;
+    delete psd_array;
+    delete losVelocity;
 }
 
 //默认buffers
@@ -454,6 +456,16 @@ void MainWindow::on_pushButton_CaptureStart_clicked()
 
     WriteData2disk();
     WriteSpecData2disk();
+    ConvertPSDUnionToArray(psd_res);
+    double *freqAxis = new double[512];
+    for (int i = 0; i < 512; i++) {
+        freqAxis[i] = 200*(i+1)/512;
+    }
+    int heightNum = ui->lineEdit_toFPGA_4->text().toInt();
+    LOSVelocityCal(heightNum, 512, 40, 1.55, freqAxis, psd_array);
+    for (int i = 0; i < heightNum-2; i++) {
+        qDebug() << losVelocity[i];
+    }
     Display_Data();
 
     qDebug() << ("Collect finished!");
@@ -815,6 +827,58 @@ void MainWindow::Display_Data()                   // 显示数据
     default:
         break;
     }
+}
+
+void MainWindow::ConvertPSDUnionToArray(PSD_DATA *psd_res)
+{
+    int psd_num = setupadq.num_samples_collect/4;
+    psd_array = new double[psd_num];
+    memset(psd_array,0,psd_num*sizeof(double));
+    for (int k=0; k<psd_num; k++) {
+        psd_array[k] = double(psd_res[k].data64);
+    }
+}
+
+void MainWindow::LOSVelocityCal(const int heightNum, const int totalSpecPoints,
+                                const int objSpecPoints, const double lambda,
+                                const double *freqAxis, const double *specData)
+{
+    double *aomSpec = new double[totalSpecPoints];
+    double *specArray = new double[(heightNum-2)*totalSpecPoints];
+    for (int k = 0; k < totalSpecPoints; k++) {
+        aomSpec[k] = specData[totalSpecPoints+k] - specData[k];
+        for (int l = 0; l < heightNum - 1; l++){
+            specArray[l*totalSpecPoints+k] = specData[totalSpecPoints*(l+2) + k] - specData[k];
+        }
+    }
+
+    int aomIndex = 0;
+    double temp = aomSpec[0];
+    for (int k = 1; k < totalSpecPoints; k++) {
+        if (aomSpec[k] > temp)
+            aomIndex = k;
+    }
+
+    int startIndex = aomIndex - objSpecPoints;
+    int endIndex = aomIndex + objSpecPoints;
+
+    int *losVelocityIndex = new int[heightNum - 2];
+    temp = 0;
+    for (int k = startIndex; k <= endIndex; k++) {
+        for (int l = 0; l < heightNum -2; l++) {
+            if (specArray[l*totalSpecPoints+ k] >temp)
+                losVelocityIndex[l] = k;
+        }
+    }
+
+    losVelocity = new double[heightNum-2];
+    memset(losVelocity, 0, sizeof(double)*(heightNum-2));
+    for(int i=0; i<heightNum-2; i++) {
+        losVelocity[i] = freqAxis[losVelocityIndex[i]]*lambda/2;
+    }
+    delete aomSpec;
+    delete specArray;
+    delete losVelocityIndex;
 }
 
 
