@@ -90,7 +90,7 @@ private slots:
     void Display_Data();            // 显示数据曲线
 
     void ConvertPSDUnionToArray(PSD_DATA *psd_res);
-    void LOSVelocityCal(const int heightNum, const int specNum,
+    void LOSVelocityCal(const int heightNum, const int totalSpecPoints,
                         const int objSpecPoints, const double lambda,
                         const double *freqAxis, const double *specData);
 

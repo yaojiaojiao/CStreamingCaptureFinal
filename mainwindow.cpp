@@ -456,13 +456,19 @@ void MainWindow::on_pushButton_CaptureStart_clicked()
 
     WriteData2disk();
     WriteSpecData2disk();
+
+    qDebug() << "Start Converting";
     ConvertPSDUnionToArray(psd_res);
+    qDebug() << "Convert success!";
     double *freqAxis = new double[512];
     for (int i = 0; i < 512; i++) {
         freqAxis[i] = 200*(i+1)/512;
     }
-    int heightNum = ui->lineEdit_toFPGA_4->text().toInt();
-    LOSVelocityCal(heightNum, 512, 40, 1.55, freqAxis, psd_array);
+    int heightNum = ui->lineEdit_toFPGA_4->text().toInt()-1;
+    qDebug() << "Height num = " << heightNum;
+    qDebug() << "Start cal losVelcity!!!";
+    LOSVelocityCal(heightNum, 512, 20, 1.55, freqAxis, psd_array);
+    qDebug() << "Cal finished!!!!";
     for (int i = 0; i < heightNum-2; i++) {
         qDebug() << losVelocity[i];
     }
@@ -733,14 +739,14 @@ void MainWindow::WriteSpecData2disk()                   // 将数据转换成功
                 }
                 else
                 {
-                    psd_res[512*l + k].pos[3] = setupadq.data_stream_target[2048*l + i];
-                    psd_res[512*l + k].pos[2] = setupadq.data_stream_target[2048*l + i+1];
-                    psd_res[512*l + k].pos[1] = setupadq.data_stream_target[2048*l + i+4];
-                    psd_res[512*l + k].pos[0] = setupadq.data_stream_target[2048*l + i+5];
-                    psd_res[512*l + k+1].pos[3] = setupadq.data_stream_target[2048*l + i+2];
-                    psd_res[512*l + k+1].pos[2] = setupadq.data_stream_target[2048*l + i+3];
-                    psd_res[512*l + k+1].pos[1] = setupadq.data_stream_target[2048*l + i+6];
-                    psd_res[512*l + k+1].pos[0] = setupadq.data_stream_target[2048*l + i+7];
+                    psd_res[512*l + 511 - k].pos[3] = setupadq.data_stream_target[2048*l + i];
+                    psd_res[512*l + 511 - k].pos[2] = setupadq.data_stream_target[2048*l + i+1];
+                    psd_res[512*l + 511 - k].pos[1] = setupadq.data_stream_target[2048*l + i+4];
+                    psd_res[512*l + 511 - k].pos[0] = setupadq.data_stream_target[2048*l + i+5];
+                    psd_res[512*l + 511 - k-1].pos[3] = setupadq.data_stream_target[2048*l + i+2];
+                    psd_res[512*l + 511 - k-1].pos[2] = setupadq.data_stream_target[2048*l + i+3];
+                    psd_res[512*l + 511 - k-1].pos[1] = setupadq.data_stream_target[2048*l + i+6];
+                    psd_res[512*l + 511 - k-1].pos[0] = setupadq.data_stream_target[2048*l + i+7];
                 }
 
                 i = i + 8;
@@ -832,9 +838,11 @@ void MainWindow::Display_Data()                   // 显示数据
 void MainWindow::ConvertPSDUnionToArray(PSD_DATA *psd_res)
 {
     int psd_num = setupadq.num_samples_collect/4;
+    qDebug() << "psd Num = " << psd_num;
     psd_array = new double[psd_num];
     memset(psd_array,0,psd_num*sizeof(double));
     for (int k=0; k<psd_num; k++) {
+        qDebug() << double(psd_res[k].data64);
         psd_array[k] = double(psd_res[k].data64);
     }
 }
@@ -847,34 +855,48 @@ void MainWindow::LOSVelocityCal(const int heightNum, const int totalSpecPoints,
     double *specArray = new double[(heightNum-2)*totalSpecPoints];
     for (int k = 0; k < totalSpecPoints; k++) {
         aomSpec[k] = specData[totalSpecPoints+k] - specData[k];
-        for (int l = 0; l < heightNum - 1; l++){
+        for (int l = 0; l < heightNum - 2; l++){
             specArray[l*totalSpecPoints+k] = specData[totalSpecPoints*(l+2) + k] - specData[k];
         }
     }
 
+    for (int i=0; i<totalSpecPoints; i++) {
+        qDebug() << aomSpec[i];
+    }
     int aomIndex = 0;
     double temp = aomSpec[0];
     for (int k = 1; k < totalSpecPoints; k++) {
-        if (aomSpec[k] > temp)
+        if (aomSpec[k] > temp) {
+            temp = aomSpec[k];
             aomIndex = k;
+        }
     }
 
+    qDebug() << aomIndex;
     int startIndex = aomIndex - objSpecPoints;
     int endIndex = aomIndex + objSpecPoints;
 
     int *losVelocityIndex = new int[heightNum - 2];
     temp = 0;
-    for (int k = startIndex; k <= endIndex; k++) {
-        for (int l = 0; l < heightNum -2; l++) {
-            if (specArray[l*totalSpecPoints+ k] >temp)
+    for (int l = 0; l < heightNum -2; l++) {
+        losVelocityIndex[l] = startIndex;
+        temp = specArray[l*totalSpecPoints+ startIndex];
+        for (int k = startIndex + 1; k <= endIndex; k++) {
+            if (specArray[l*totalSpecPoints+ k] >temp) {
+                temp = specArray[l*totalSpecPoints+ k];
                 losVelocityIndex[l] = k;
+            }
         }
+    }
+
+    for (int l = 0; l < heightNum -2; l++) {
+        qDebug() << losVelocityIndex[l];
     }
 
     losVelocity = new double[heightNum-2];
     memset(losVelocity, 0, sizeof(double)*(heightNum-2));
     for(int i=0; i<heightNum-2; i++) {
-        losVelocity[i] = freqAxis[losVelocityIndex[i]]*lambda/2;
+        losVelocity[i] = (freqAxis[losVelocityIndex[i]] - freqAxis[aomIndex])*lambda/2;
     }
     delete aomSpec;
     delete specArray;
