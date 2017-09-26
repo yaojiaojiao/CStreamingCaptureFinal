@@ -20,8 +20,8 @@
    <widget class="QPushButton" name="pushButton_CaptureStart">
     <property name="geometry">
      <rect>
-      <x>910</x>
-      <y>200</y>
+      <x>1000</x>
+      <y>220</y>
       <width>93</width>
       <height>28</height>
      </rect>
@@ -1019,10 +1019,10 @@
            </font>
           </property>
           <property name="text">
-           <string/>
+           <string>OverLap+Ur3/2</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -1065,7 +1065,7 @@
            </font>
           </property>
           <property name="text">
-           <string>0</string>
+           <string>430</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -1107,7 +1107,7 @@
            </font>
           </property>
           <property name="text">
-           <string>0</string>
+           <string>1AE</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignCenter</set>
@@ -1129,10 +1129,10 @@
            </font>
           </property>
           <property name="text">
-           <string/>
+           <string>MirrorStart</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
           </property>
          </widget>
         </item>
@@ -1239,7 +1239,7 @@
            </font>
           </property>
           <property name="text">
-           <string>处理总点数</string>
+           <string>处理结束点数</string>
           </property>
           <property name="alignment">
            <set>Qt::AlignLeading|Qt::AlignLeft|Qt::AlignVCenter</set>
@@ -1358,7 +1358,7 @@
       <x>330</x>
       <y>20</y>
       <width>331</width>
-      <height>221</height>
+      <height>191</height>
      </rect>
     </property>
     <property name="font">
@@ -1374,9 +1374,9 @@
      <property name="geometry">
       <rect>
        <x>20</x>
-       <y>30</y>
+       <y>40</y>
        <width>291</width>
-       <height>170</height>
+       <height>131</height>
       </rect>
      </property>
      <layout class="QVBoxLayout" name="verticalLayout_3">
@@ -1455,26 +1455,26 @@
           </property>
          </widget>
         </item>
+        <item>
+         <widget class="QLabel" name="label_18">
+          <property name="font">
+           <font>
+            <family>微软雅黑</family>
+            <pointsize>10</pointsize>
+           </font>
+          </property>
+          <property name="layoutDirection">
+           <enum>Qt::LeftToRight</enum>
+          </property>
+          <property name="text">
+           <string>最大 65536</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
+          </property>
+         </widget>
+        </item>
        </layout>
-      </item>
-      <item>
-       <widget class="QLabel" name="label_18">
-        <property name="font">
-         <font>
-          <family>微软雅黑</family>
-          <pointsize>10</pointsize>
-         </font>
-        </property>
-        <property name="layoutDirection">
-         <enum>Qt::LeftToRight</enum>
-        </property>
-        <property name="text">
-         <string>1 &lt;= Num_of_Buffers &lt;= 65536</string>
-        </property>
-        <property name="alignment">
-         <set>Qt::AlignRight|Qt::AlignTrailing|Qt::AlignVCenter</set>
-        </property>
-       </widget>
       </item>
       <item>
        <layout class="QHBoxLayout" name="horizontalLayout_17">
@@ -1611,7 +1611,7 @@
            <bool>true</bool>
           </property>
           <property name="checked">
-           <bool>true</bool>
+           <bool>false</bool>
           </property>
           <property name="autoExclusive">
            <bool>true</bool>
@@ -1658,7 +1658,7 @@
            <string>Both</string>
           </property>
           <property name="checked">
-           <bool>false</bool>
+           <bool>true</bool>
           </property>
           <property name="autoExclusive">
            <bool>false</bool>
@@ -1821,7 +1821,7 @@
      </font>
     </property>
     <property name="currentIndex">
-     <number>1</number>
+     <number>0</number>
     </property>
     <widget class="QWidget" name="CHA">
      <attribute name="title">
@@ -1856,27 +1856,153 @@
      </widget>
     </widget>
    </widget>
-   <widget class="QCheckBox" name="checkBox_Order">
+   <widget class="QWidget" name="">
     <property name="geometry">
      <rect>
-      <x>710</x>
-      <y>200</y>
-      <width>111</width>
-      <height>18</height>
+      <x>344</x>
+      <y>220</y>
+      <width>641</width>
+      <height>31</height>
      </rect>
     </property>
-    <property name="font">
-     <font>
-      <family>Microsoft YaHei</family>
-      <pointsize>10</pointsize>
-     </font>
-    </property>
-    <property name="text">
-     <string>比特反转</string>
-    </property>
-    <property name="checked">
-     <bool>false</bool>
-    </property>
+    <layout class="QVBoxLayout" name="verticalLayout_4">
+     <item>
+      <layout class="QHBoxLayout" name="horizontalLayout_21">
+       <item>
+        <widget class="QLabel" name="label_43">
+         <property name="font">
+          <font>
+           <family>微软雅黑</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>镜面回波宽度</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit_MirrorLength">
+         <property name="font">
+          <font>
+           <family>微软雅黑</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>180</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_44">
+         <property name="font">
+          <font>
+           <family>微软雅黑</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>点=&gt;</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_4">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QLineEdit" name="lineEdit_MirrorLength_ns">
+         <property name="font">
+          <font>
+           <family>微软雅黑</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>450</string>
+         </property>
+         <property name="alignment">
+          <set>Qt::AlignCenter</set>
+         </property>
+         <property name="readOnly">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QLabel" name="label_45">
+         <property name="font">
+          <font>
+           <family>微软雅黑</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>ns</string>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <spacer name="horizontalSpacer_5">
+         <property name="orientation">
+          <enum>Qt::Horizontal</enum>
+         </property>
+         <property name="sizeHint" stdset="0">
+          <size>
+           <width>40</width>
+           <height>20</height>
+          </size>
+         </property>
+        </spacer>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_Order">
+         <property name="font">
+          <font>
+           <family>Microsoft YaHei</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>比特反转</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QCheckBox" name="checkBox_Overlap">
+         <property name="font">
+          <font>
+           <family>Microsoft YaHei</family>
+           <pointsize>10</pointsize>
+          </font>
+         </property>
+         <property name="text">
+          <string>Overlap</string>
+         </property>
+         <property name="checked">
+          <bool>false</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
+     </item>
+    </layout>
    </widget>
   </widget>
   <widget class="QMenuBar" name="menuBar">
@@ -1927,7 +2053,7 @@
  <resources/>
  <connections/>
  <buttongroups>
-  <buttongroup name="buttonGroup_2"/>
   <buttongroup name="buttonGroup"/>
+  <buttongroup name="buttonGroup_2"/>
  </buttongroups>
 </ui>

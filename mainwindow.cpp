@@ -49,6 +49,7 @@ MainWindow::MainWindow(QWidget *parent) :
     ui->lineEdit_BufferNum->setText(QString::number(setupadq.num_buffers));
     ui->lineEdit_BufferSize->setText(QString::number(setupadq.size_buffers/512));
 
+    on_checkBox_Overlap_clicked(ui->checkBox_Overlap->isChecked());
     psd_res = nullptr;
 }
 
@@ -92,8 +93,8 @@ MainWindow::~MainWindow()
     delete ui;
     if (psd_res != nullptr)
         delete psd_res;
-    delete psd_array;
-    delete losVelocity;
+    if (losVelocity != nullptr)
+        delete losVelocity;
 }
 
 //默认buffers
@@ -157,7 +158,8 @@ void MainWindow::on_lineEdit_toFPGA_3_textChanged(const QString &arg3)          
     int nPoints = arg3.toInt();
     int nBins = ui->lineEdit_toFPGA_4->text().toInt();
     ui->lineEdit_toFPGA_7->setText(QString::number(nPoints*nBins));
-//    ui->lineEdit_SampTotNum->setText(QString::number(nPoints*(nBins-1)*4));
+    //    ui->lineEdit_SampTotNum->setText(QString::number(nPoints*(nBins-1)*4));
+    on_checkBox_Overlap_clicked(ui->checkBox_Overlap->isChecked());
 }
 
 void MainWindow::on_lineEdit_toFPGA_3x_textChanged(const QString &arg3x)
@@ -174,6 +176,9 @@ void MainWindow::on_lineEdit_toFPGA_4_textChanged(const QString &arg4)          
     int nPoints = ui->lineEdit_toFPGA_3->text().toInt();
     ui->lineEdit_toFPGA_7->setText(QString::number(nPoints*nBins));
     ui->lineEdit_SampTotNum->setText(QString::number(512*(nBins-1)*4));
+
+    on_checkBox_Overlap_clicked(ui->checkBox_Overlap->isChecked());
+
 }
 
 void MainWindow::on_lineEdit_toFPGA_4x_textChanged(const QString &arg4x)
@@ -211,10 +216,14 @@ void MainWindow::on_lineEdit_toFPGA_7_textChanged(const QString &arg7)          
     QString lineEdit_toFPGA7x = QString::number(arg7.toInt(), 16).toUpper();
     ui->lineEdit_toFPGA_7x->setText(lineEdit_toFPGA7x);
 
-    int nPoints = ui->lineEdit_toFPGA_3->text().toInt();
-    int nBins = ui->lineEdit_toFPGA_4->text().toInt();
+    int nPointsPerRB = ui->lineEdit_toFPGA_3->text().toInt();
+    int nRangeBin = ui->lineEdit_toFPGA_4->text().toInt();
     int nTotalPoints =arg7.toInt();
-    if (nPoints*nBins != nTotalPoints)
+    int MirrorLength = ui->lineEdit_MirrorLength->text().toInt();
+
+    int UR_EndPosition = (nRangeBin-1)*nPointsPerRB + MirrorLength;     // 设置FPGA数据采样长度
+
+    if (UR_EndPosition != nTotalPoints)
         ui->lineEdit_toFPGA_7->setStyleSheet("color: red;");
     else
         ui->lineEdit_toFPGA_7->setStyleSheet("color: black;");
@@ -903,4 +912,44 @@ void MainWindow::LOSVelocityCal(const int heightNum, const int totalSpecPoints,
     delete losVelocityIndex;
 }
 
+// 镜面回波长度改变
+void MainWindow::on_lineEdit_MirrorLength_textChanged(const QString &arg1)
+{
+    int MirrorLength = arg1.toInt();
+    int nPointsPerRB = ui->lineEdit_toFPGA_3->text().toInt();
+    int UR_MirrorStart = 500 + MirrorLength - nPointsPerRB;
 
+    ui->lineEdit_toFPGA_6->setText(QString::number(UR_MirrorStart));
+    on_checkBox_Overlap_clicked(ui->checkBox_Overlap->isChecked());
+}
+
+// OverLap 是否勾选
+void MainWindow::on_checkBox_Overlap_clicked(bool checked)
+{
+
+    int nPointsPerRB = ui->lineEdit_toFPGA_3->text().toInt();
+    int nRangeBin = ui->lineEdit_toFPGA_4->text().toInt();
+    int MirrorLength = ui->lineEdit_MirrorLength->text().toInt();
+    int nSamples2Collect;
+
+    if(checked)
+    {
+        int Overlap_startPosition = (nRangeBin-3.5)*nPointsPerRB;
+        ui->lineEdit_toFPGA_5->setText(QString::number(Overlap_startPosition));
+
+        nSamples2Collect = 512*4*(nRangeBin * 2 -5);        // 设置采集点数
+        ui->lineEdit_SampTotNum->setText(QString::number(nSamples2Collect));
+
+    }
+    else
+    {
+        ui->lineEdit_toFPGA_5->setText("0");
+
+        nSamples2Collect = 512*4*(nRangeBin - 1);        // 设置采集点数
+        ui->lineEdit_SampTotNum->setText(QString::number(nSamples2Collect));
+    }
+
+    int UR_EndPosition = (nRangeBin-1)*nPointsPerRB + MirrorLength;     // 设置FPGA数据采样长度
+    ui->lineEdit_toFPGA_7->setText(QString::number(UR_EndPosition));
+
+}

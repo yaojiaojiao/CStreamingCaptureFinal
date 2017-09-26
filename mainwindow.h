@@ -98,6 +98,10 @@ private slots:
 
     void on_lineEdit_BufferSize_textChanged(const QString &arg1);
 
+    void on_lineEdit_MirrorLength_textChanged(const QString &arg1);
+
+    void on_checkBox_Overlap_clicked(bool checked);
+
 private:
 
     Ui::MainWindow *ui;
