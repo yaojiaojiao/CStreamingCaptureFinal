@@ -920,6 +920,7 @@ void MainWindow::on_lineEdit_MirrorLength_textChanged(const QString &arg1)
     int UR_MirrorStart = 500 + MirrorLength - nPointsPerRB;
 
     ui->lineEdit_toFPGA_6->setText(QString::number(UR_MirrorStart));
+    ui->lineEdit_MirrorLength_ns->setText(QString::number(MirrorLength*2.5));
     on_checkBox_Overlap_clicked(ui->checkBox_Overlap->isChecked());
 }
 
@@ -949,7 +950,7 @@ void MainWindow::on_checkBox_Overlap_clicked(bool checked)
         ui->lineEdit_SampTotNum->setText(QString::number(nSamples2Collect));
     }
 
-    int UR_EndPosition = (nRangeBin-1)*nPointsPerRB + MirrorLength;     // 设置FPGA数据采样长度
+    int UR_EndPosition = (nRangeBin-3)*nPointsPerRB + 500+ MirrorLength;     // 设置FPGA数据采样长度
     ui->lineEdit_toFPGA_7->setText(QString::number(UR_EndPosition));
 
 }
